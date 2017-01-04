@@ -1,0 +1,87 @@
+syntax = "proto2";
+
+package smartseg;
+
+message ConfigParameter {
+  optional int32 max_points = 1 [default = 250000];
+  repeated string class_name = 2;
+  repeated bool class_orientation = 3;
+}
+
+message FrameDataParameter {
+  required string source = 1;
+  required string pcd_path = 2;
+  required string label_path = 3;
+  optional int32 buffer_size = 4 [default = 5];
+  optional float perturbation_rate = 5 [default = 0];
+}
+
+message FrameSequenceDataParameter {
+  required string source = 1;
+  required string pcd_path = 2;
+  required string label_path = 3;
+  required string sequence_path = 4;
+  required int32 num_frames = 5;
+  optional int32 step = 6 [default = 1];
+  optional int32 buffer_size = 7 [default = 5];
+  optional float perturbation_rate = 8 [default = 0];
+}
+
+message BlobVisualizeParameter {
+  required string name = 1 [default = "visualize"];
+  optional float lower_bound = 2 [default = 0];
+  optional float upper_bound = 3 [default = 1];
+  optional float ignore_value = 4 [default = 0];
+  optional int32 channel = 5 [default = 0];
+}
+
+message PlanViewParameter {
+  required float range = 1;
+  required int32 splits = 2;
+}
+
+message HorizontalViewParameter {
+  required float lower_pitch = 1;
+  required float upper_pitch = 2;
+  required int32 rows = 3;
+  required int32 cols = 4;
+}
+
+message PlanViewExtractorParameter {
+  required float filter_min_z = 1;
+  required float filter_max_z = 2;
+}
+
+message HorizontalViewExtractorParameter {
+}
+
+message SegmentorParameter {
+  optional bool training_mode = 1 [default = false];
+  optional bool merge_diagonal_grids = 2 [default = false];
+  optional bool find_best_cut = 3 [default = false];
+  optional float topz_threshold = 4 [default = -1];
+}
+
+message FrameTargetParameter {
+  optional int32 startup_iter = 1 [default = 0];
+  optional float max_center_norm = 2 [default = 0];
+  optional bool equal_objectness_weight = 3 [default = false];
+  optional bool point_center = 4 [default = false];
+  optional bool sample_grid_center = 5 [default = false];
+}
+
+message OnlineNormParameter {
+  required float iters = 1;
+  optional float moving_average_fraction = 2 [default = .999];
+  optional float eps = 3 [default = 1e-5];
+}
+
+message ViewPoolingParameter {
+}
+
+message ViewUnpoolingParameter {
+}
+
+message PointInterpolationParameter {
+  optional bool interpolation = 1 [default = true];
+}
