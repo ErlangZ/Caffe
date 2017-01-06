@@ -44,6 +44,19 @@ public:
     const std::string id_str() const;
     std::string type_str() const;
     std::string debug_string() const;
+    int get_type() const {
+       switch (type)  {
+           case bigMot:
+           case midMot:
+           case smallMot:
+               return 1;
+           case pedestrian:
+               return 2;
+           default:
+               return 0;
+       }
+    }
+    pcl::PointCloud<pcl::PointXYZ>::Ptr get_cloud(pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud);
 private:
     //type -> RGB 
     Eigen::Vector3f get_color() const;

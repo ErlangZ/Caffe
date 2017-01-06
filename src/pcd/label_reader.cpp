@@ -43,5 +43,21 @@ bool LabelsReader::init(const std::string& file_name) {
     return true;
 }
 
+pcl::PointCloud<pcl::PointXYZ>::Ptr read_pcd(const std::string& pcd_file_name) {
+    pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud(new pcl::PointCloud<pcl::PointXYZ>); 
+    //Point Cloud MonochromeCloud(pcl::PointCloud<pcl::PointXYZ>)
+    int offset = 0; //[input] offset, you may change this when read from tar file.
+
+    //Read Point Cloud from File    
+    pcl::PCDReader file_reader;
+    int ret = file_reader.read(pcd_file_name, *point_cloud, offset);
+    if (ret != 0) {
+        LOG(ERROR) << "file:" << pcd_file_name << " open failed. ret:" << ret << std::endl;
+        return pcl::PointCloud<pcl::PointXYZ>::Ptr();
+    }
+    return point_cloud;
+}    
+
+
 } // namespace perception
 } // namespace adu

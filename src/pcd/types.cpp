@@ -62,6 +62,10 @@ void Box::show(pcl::visualization::PCLVisualizer& viewer) {
                    id_str());
 }
 
+pcl::PointCloud<pcl::PointXYZ>::Ptr Box::get_cloud(pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud) {
+    return BoxFilter::filter(point_cloud, BoxFilter::filter(point_cloud, *this));
+}
+
 std::string Box::type_str() const {
     switch (type) {
         case smallMot: 

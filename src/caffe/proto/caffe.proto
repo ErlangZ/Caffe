@@ -821,8 +821,12 @@ message ImageDataParameter {
 
 message PCDDataParameter {
     required string root_folder = 1;
-    required bool output_label = 2;
-    optional string label_file = 3;
+    required bool output_label = 2 [default = true];
+    required string label_file = 3;
+    required uint32 batch_size = 4;
+    required uint32 grid_x_num = 5;
+    required uint32 grid_y_num = 6;
+    required uint32 grid_z_num = 7;
 }
 
 message InfogainLossParameter {

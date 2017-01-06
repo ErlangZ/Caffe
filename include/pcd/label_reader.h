@@ -6,7 +6,15 @@
 #ifndef INCLUDE_PCD_LABEL_READER_H
 #define INCLUDE_PCD_LABEL_READER_H
 
+#include <pcl/common/common_headers.h>
+#include <pcl/range_image/range_image.h>
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/range_image_visualizer.h>
+#include <pcl/visualization/cloud_viewer.h>
+
 #include "pcd/types.h"
+#include "glog/logging.h"
 
 namespace adu {
 namespace perception {
@@ -18,6 +26,7 @@ public:
     bool init(const std::string& file_name);
     
     const Label::Ptr& get(const std::string& pcd_file_name) const {
+//TODO: ADD mutex.
         return _labels[pcd_file_name];
     }
     const Iter begin() {
@@ -31,6 +40,7 @@ private:
     mutable boost::unordered_map<std::string, Label::Ptr> _labels;
 };
 
+pcl::PointCloud<pcl::PointXYZ>::Ptr read_pcd(const std::string& pcd_file_name); 
 } // namespace perception
 } // namespace adu
 

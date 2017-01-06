@@ -33,7 +33,20 @@ protected:
                                 const std::vector<Blob<Dtype>*>& top);
     virtual void load_batch(Batch<Dtype>* batch);
 private:
+    void put_data_label(const int index, 
+                        const adu::perception::Box::Ptr box,
+                        const pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud,
+                        Dtype* prefetch_data,
+                        Dtype* prefetch_label);
+private:
     adu::perception::LabelsReader _label_reader;
+    std::vector<std::string>      _file_names;
+    std::string                   _pcd_root;
+    int _batch_size;
+    int _grid_x_num;
+    int _grid_y_num;
+    int _grid_z_num;
+    std::vector<int> _top_shape;
 };
 
 }
