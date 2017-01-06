@@ -22,6 +22,7 @@ class Grid {
 public:
     Grid(int x_num, int y_num, int z_num, Dtype* data): 
         _x_num(x_num), _y_num(y_num), _z_num(z_num), _data(data) {
+        memset(_data, 0, _x_num * _y_num * _z_num);
     }
 
     bool put_point_cloud_to_grids(const pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud) {

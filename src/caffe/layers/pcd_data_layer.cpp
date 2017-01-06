@@ -48,6 +48,15 @@ void PCDDataLayer<Dtype>::DataLayerSetUp(const std::vector<Blob<Dtype>*>& bottom
     _top_shape[2] = _grid_y_num; 
     _top_shape[3] = _grid_z_num;
     CHECK(_grid_x_num > 0 && _grid_y_num > 0 && _grid_z_num > 0) << "Grid Size Should be positive";
+
+    //Reshape Top Blob
+    this->transformed_data_.Reshape(_top_shape);
+    for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
+        this->prefetch_[i].data_.Reshape(_top_shape);
+        this->prefetch_[i].label_.Reshape(_batch_size, 1, 1, 1);
+    }
+    top[0]->Reshape(_top_shape);
+    top[1]->Reshape(_batch_size, 1, 1, 1);
 }
 
 // This function is called on prefetch thread
@@ -56,8 +65,6 @@ template <typename Dtype>
 void PCDDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     CPUTimer batch_timer;
     batch_timer.Start();
-    //Reshape Top Blob
-    batch->data_.Reshape(_top_shape);
 
     Dtype* prefetch_data = batch->data_.mutable_cpu_data();
     Dtype* prefetch_label = batch->label_.mutable_cpu_data();
