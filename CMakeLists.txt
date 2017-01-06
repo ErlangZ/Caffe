@@ -9,6 +9,8 @@ endif()
 # ---[ Caffe project
 project(Caffe C CXX)
 
+#
+set(PCL_LIBS pcl_io pcl_common pcl_visualization pcl_filters pcl_sample_consensus)
 # ---[ Caffe version
 set(CAFFE_TARGET_VERSION "1.0.0-rc3" CACHE STRING "Caffe logical version")
 set(CAFFE_TARGET_SOVERSION "1.0.0-rc3" CACHE STRING "Caffe soname version")
@@ -24,6 +26,8 @@ include(cmake/Targets.cmake)
 include(cmake/Misc.cmake)
 include(cmake/Summary.cmake)
 include(cmake/ConfigGen.cmake)
+include(cmake/PCL.cmake)
+include(cmake/OpenCV.cmake)
 
 # ---[ Options
 caffe_option(CPU_ONLY  "Build Caffe without CUDA support" OFF) # TODO: rename to USE_CUDA
@@ -65,8 +69,9 @@ configure_file(cmake/Templates/caffe_config.h.in "${PROJECT_BINARY_DIR}/caffe_co
 # ---[ Includes
 set(Caffe_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 include_directories(${Caffe_INCLUDE_DIR} ${PROJECT_BINARY_DIR})
+#include_directories(${CMAKE_SOURCE_DIR}/PointCloud-Classifiers/)
+link_directories(${CMAKE_SOURCE_DIR}/PointCloud-Classifiers/build)
 include_directories(BEFORE src) # This is needed for gtest.
-
 # ---[ Subdirectories
 add_subdirectory(src/gtest)
 add_subdirectory(src/caffe)

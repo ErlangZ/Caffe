@@ -1,0 +1,3 @@
+[submodule "PointCloud-Classifiers"]
+	path = PointCloud-Classifiers
+	url = https://github.com/ErlangZ/PointCloud-Classifiers.git

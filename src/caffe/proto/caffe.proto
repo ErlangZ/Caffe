@@ -405,6 +405,8 @@ message LayerParameter {
   optional TileParameter tile_param = 138;
   optional WindowDataParameter window_data_param = 129;
 
+  optional PCDDataParameter pcd_data_param = 3000;
+
   optional smartseg.ConfigParameter smartseg_config_param = 2000;
   optional smartseg.FrameDataParameter smartseg_frame_data_param = 2001;
   optional smartseg.FrameSequenceDataParameter smartseg_frame_sequence_data_param = 2009;
@@ -419,6 +421,7 @@ message LayerParameter {
   optional smartseg.ViewPoolingParameter smartseg_view_pooling_param = 2011;
   optional smartseg.ViewUnpoolingParameter smartseg_view_unpooling_param = 2012;
   optional smartseg.PointInterpolationParameter smartseg_point_interpolation_param = 2013;
+
 }
 
 // Message that stores parameters used to apply transformation
@@ -814,6 +817,12 @@ message ImageDataParameter {
   // data.
   optional bool mirror = 6 [default = false];
   optional string root_folder = 12 [default = ""];
+}
+
+message PCDDataParameter {
+    required string root_folder = 1;
+    required bool output_label = 2;
+    optional string label_file = 3;
 }
 
 message InfogainLossParameter {
