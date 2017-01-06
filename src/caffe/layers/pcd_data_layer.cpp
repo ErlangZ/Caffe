@@ -69,7 +69,7 @@ void PCDDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     Dtype* prefetch_data = batch->data_.mutable_cpu_data();
     Dtype* prefetch_label = batch->label_.mutable_cpu_data();
     int batch_count = 0;
-    while (batch_count < _batch_size) {
+    while (true) {
         //TODO: Set Random Seed.
         int index = rand() % _file_names.size();
         Label::Ptr label = _label_reader.get(_file_names[index]);
@@ -80,7 +80,6 @@ void PCDDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
         //Put Data into Net Top
         for (size_t box_index = 0; box_index < label->boxes.size(); box_index++) {
             const Box::Ptr box = label->boxes[box_index];
-
             Dtype* data = prefetch_data + batch->data_.offset(batch_count);
             Grid<Dtype> grid(_grid_x_num, _grid_y_num, _grid_z_num, data);
             if (!grid.put_point_cloud_to_grids(box->get_cloud(point_cloud))) {
@@ -90,12 +89,14 @@ void PCDDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
 
             prefetch_label[batch_count] = box->get_type();
             batch_count ++;
+            if (batch_count >= _batch_size) {
+                batch_timer.Stop();
+                DLOG(INFO) << "Prefetch batch(size:" << _batch_size << "): " 
+                           << batch_timer.MilliSeconds() << " ms.";
+                return;
+            }
         }
-
     }
-    batch_timer.Stop();
-    DLOG(INFO) << "Prefetch batch(size:" << _batch_size << "): " 
-               << batch_timer.MilliSeconds() << " ms.";
 }
 
 INSTANTIATE_CLASS(PCDDataLayer);
