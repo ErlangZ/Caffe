@@ -52,6 +52,12 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   const Dtype* bottom_label = bottom[1]->cpu_data();
   const int dim = bottom[0]->count() / outer_num_;
   const int num_labels = bottom[0]->shape(label_axis_);
+
+  //label class count
+  DLOG(INFO) << "Label num:" << num_labels; 
+  vector<int> label_right(num_labels, 0);
+  vector<int> label_wrong(num_labels, 0);
+
   vector<Dtype> maxval(top_k_+1);
   vector<int> max_id(top_k_+1);
   if (top.size() > 1) {
@@ -78,6 +84,13 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       std::partial_sort(
           bottom_data_vector.begin(), bottom_data_vector.begin() + top_k_,
           bottom_data_vector.end(), std::greater<std::pair<Dtype, int> >());
+
+      if (bottom_data_vector[0].second == label_value) { //Only Count the hightest Score.
+          label_right[label_value] ++;
+      } else {
+          label_wrong[label_value] ++;
+      }
+
       // check if true label is in top k predictions
       for (int k = 0; k < top_k_; k++) {
         if (bottom_data_vector[k].second == label_value) {
@@ -90,7 +103,7 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     }
   }
 
-  // LOG(INFO) << "Accuracy: " << accuracy;
+  DLOG(INFO) << "Accuracy: " << accuracy << count;
   top[0]->mutable_cpu_data()[0] = accuracy / count;
   if (top.size() > 1) {
     for (int i = 0; i < top[1]->count(); ++i) {
@@ -98,6 +111,10 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
           nums_buffer_.cpu_data()[i] == 0 ? 0
           : top[1]->cpu_data()[i] / nums_buffer_.cpu_data()[i];
     }
+  }
+  for (int i = 0; i < label_right.size(); i++) {
+      LOG(INFO) << "Label:" << i << " right:"<< label_right[i] << " wrong:" << label_wrong[i] 
+                << " Accuracy:" << static_cast<double>(label_right[i])/(label_right[i] + label_wrong[i]) * 100 << "%";
   }
   // Accuracy layer should not be used as a loss function.
 }

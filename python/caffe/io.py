@@ -2,6 +2,7 @@ import numpy as np
 import skimage.io
 from scipy.ndimage import zoom
 from skimage.transform import resize
+from pcl import PointCloud
 
 try:
     # Python3 will most likely not be able to load protobuf
@@ -273,9 +274,14 @@ class Transformer:
         self.__check_input(in_)
         self.input_scale[in_] = scale
 
+## PCD IO
+def load_pcd(filename, box=None):
+    """ Load an PCD from pcd-file
+        if box is not None, it means an box region.
+    """
+    pass
 
 ## Image IO
-
 def load_image(filename, color=True):
     """
     Load an image converting from grayscale or alpha as needed.
