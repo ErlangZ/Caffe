@@ -1,6 +1,9 @@
 ## General 
 #
 build
+core
+#Pictures
+*.png
 
 # Compiled Object files
 *.slo
