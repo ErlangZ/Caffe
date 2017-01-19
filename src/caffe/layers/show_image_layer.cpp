@@ -15,16 +15,15 @@ void ShowImageLayer<double>::Forward_cpu(const vector<Blob<double>*>& bottom,
     for (int num = 0; num < bottom[0]->num(); num++) {
         cv::Mat image;
         if (bottom[0]->channels() == 1) {
-            image = cv::Mat(bottom[0]->height(), bottom[0]->width(), CV_64FC1,
-                                    image_data); 
+            image = cv::Mat(bottom[0]->height(), bottom[0]->width(), CV_64FC1, image_data); 
         } else if (bottom[0]->channels() == 3) {
-            image = cv::Mat(bottom[0]->height(), bottom[0]->width(), CV_64FC3,
-                                    image_data); 
+            image = cv::Mat(bottom[0]->height(), bottom[0]->width(), CV_64FC3, image_data); 
         } else {
             LOG(FATAL) << "Get Invalid Image Channels:" << bottom[0]->channels();
         }
-        cv::imshow(picture_name, image);
+        cv::imshow(picture_name.c_str(), image);
         cv::waitKey(0);
+        image_data += bottom[0]->offset(0);
     }
 }
 
@@ -35,16 +34,15 @@ void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom,
     for (int num = 0; num < bottom[0]->num(); num++) {
         cv::Mat image;
         if (bottom[0]->channels() == 1) {
-            image = cv::Mat(bottom[0]->height(), bottom[0]->width(), CV_32FC1,
-                                    image_data); 
+            image = cv::Mat(bottom[0]->height(), bottom[0]->width(), CV_32FC1, image_data); 
         } else if (bottom[0]->channels() == 3) {
-            image = cv::Mat(bottom[0]->height(), bottom[0]->width(), CV_32FC3,
-                                    image_data); 
+            image = cv::Mat(bottom[0]->height(), bottom[0]->width(), CV_32FC3, image_data); 
         } else {
             LOG(FATAL) << "Get Invalid Image Channels:" << bottom[0]->channels();
         }
-        cv::imshow(picture_name, image);
+        cv::imshow(picture_name.c_str(), image);
         cv::waitKey(0);
+        image_data += bottom[0]->offset(0);
     }
 }
 
