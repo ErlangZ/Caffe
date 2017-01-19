@@ -24,10 +24,12 @@ class ShowImageLayer : public Layer<Dtype> {
   explicit ShowImageLayer(const LayerParameter& param) : Layer<Dtype>(param) {}
   virtual ~ShowImageLayer() {};
 
-  virtual void DataLayerSetUp(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+  virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
       ShowImageParameter show_image_param = this->layer_param_.show_image_param();
       picture_name = show_image_param.image_name(); 
+      LOG(INFO) << "ShowImageLayer get ImageName:" << picture_name;
   }
+
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
       channels_ = bottom[0]->channels();
       width_ = bottom[0]->width();

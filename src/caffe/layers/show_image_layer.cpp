@@ -31,6 +31,7 @@ void ShowImageLayer<double>::Forward_cpu(const vector<Blob<double>*>& bottom,
             LOG(FATAL) << "Get Invalid Image Channels:" << bottom[0]->channels();
         }
         cv::imshow(picture_name.c_str(), image);
+        LOG(INFO) << "Show:" << picture_name << " num:" << num;
         cv::waitKey(0);
         image_data += bottom[0]->offset(0);
     }
@@ -59,6 +60,7 @@ void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom,
             LOG(FATAL) << "Get Invalid Image Channels:" << bottom[0]->channels();
         }
         cv::imshow(picture_name.c_str(), image);
+        LOG(INFO) << "Show:" << picture_name << " num:" << num;
         cv::waitKey(0);
         image_data += bottom[0]->offset(0);
     }
