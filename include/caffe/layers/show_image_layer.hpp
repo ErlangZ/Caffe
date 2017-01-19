@@ -29,6 +29,10 @@ class ShowImageLayer : public Layer<Dtype> {
       picture_name = show_image_param.image_name(); 
   }
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+      channels_ = bottom[0]->channels();
+      width_ = bottom[0]->width();
+      height_ = bottom[0]->height();
+      cv_data_.Reshape(1, channels_, height_, width_);
   }
 
   virtual inline const char* type() const { return "ShowImage"; }
@@ -44,6 +48,11 @@ class ShowImageLayer : public Layer<Dtype> {
         if (propagate_down[i]) { NOT_IMPLEMENTED; }
       }
   }
+  
+  int channels_;
+  int width_;
+  int height_;
+  Blob<Dtype> cv_data_;
   std::string picture_name;
 };
 
