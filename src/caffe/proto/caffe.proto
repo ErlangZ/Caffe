@@ -406,6 +406,7 @@ message LayerParameter {
   optional WindowDataParameter window_data_param = 129;
 
   optional PCDDataParameter pcd_data_param = 3000;
+  optional ShowImageParameter show_image_param = 3001;
 
   optional smartseg.ConfigParameter smartseg_config_param = 2000;
   optional smartseg.FrameDataParameter smartseg_frame_data_param = 2001;
@@ -1427,4 +1428,8 @@ message PReLUParameter {
   optional FillerParameter filler = 1;
   // Whether or not slope parameters are shared across channels.
   optional bool channel_shared = 2 [default = false];
+}
+
+message ShowImageParameter {
+  required string image_name = 1;
 }

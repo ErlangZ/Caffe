@@ -305,7 +305,9 @@ int test() {
         }
         const std::string& output_name = caffe_net.blob_names()[
             caffe_net.output_blob_indices()[j]];
-        LOG(INFO) << "Batch " << i << ", " << output_name << " = " << score << " top:" << k;
+        if (output_name.find("accuracy") != std::string::npos) {
+            LOG(INFO) << "Batch " << i << ", " << output_name << " = " << score << " top:" << k;
+        }
       }
     }
   }
@@ -322,7 +324,9 @@ int test() {
       loss_msg_stream << " (* " << loss_weight
                       << " = " << loss_weight * mean_score << " loss)";
     }
-    LOG(INFO) << output_name << " = " << mean_score << loss_msg_stream.str();
+    if (output_name.find("accuracy") != std::string::npos) {
+        LOG(INFO) << output_name << " = " << mean_score << loss_msg_stream.str();
+    }
   }
 
   return 0;

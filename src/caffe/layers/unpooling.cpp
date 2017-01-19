@@ -159,7 +159,7 @@ STUB_GPU(UNPoolingLayer);
 #endif
 
 INSTANTIATE_CLASS(UNPoolingLayer);
-
+REGISTER_LAYER_CLASS(UNPooling);
 
 }
 
