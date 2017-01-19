@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <vector>
-
+#include "caffe/util/device_alternate.hpp"
 #include "caffe/layers/unpooling_layer.hpp"
 #include "caffe/util/math_functions.hpp"
 
@@ -138,13 +138,14 @@ void UNPoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   default:
     LOG(FATAL) << "Unknown pooling method.";
   }
-}
+};
 
 #ifdef CPU_ONLY
 STUB_GPU(UNPoolingLayer);
 #endif
 
 INSTANTIATE_CLASS(UNPoolingLayer);
+
 
 }
 
