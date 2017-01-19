@@ -87,7 +87,7 @@ TYPED_TEST(UNPoolingLayerTest, TestForwardAve) {
     
     layer.Forward(blob_bottom_vec, blob_top_vec);
     // [4.0, 3.0, 3.0, 4.25]  -> [4.0, 7.0, 6.0, 7.25, 4.25]
-    // [4.0, 3.0, 3.0, 4.25]     [8.0, 14.0, 12.0, 14.5, 9.5]
+    // [4.0, 3.0, 3.0, 4.25]     [8.0, 14.0, 12.0, 14.5, 8.5]
     //                           [4.0, 7.0, 6.0, 7.25, 4.25]
     //                       mask[1.0, 2.0, 2.0, 2.0, 1.0]
     //                        -> [2.0, 4.0, 4.0, 4.0, 2.0]
@@ -107,7 +107,7 @@ TYPED_TEST(UNPoolingLayerTest, TestForwardAve) {
       EXPECT_NEAR(this->blob_top_->cpu_data()[i + 6], 3.5, 1e-6);
       EXPECT_NEAR(this->blob_top_->cpu_data()[i + 7], 3.0, 1e-6);
       EXPECT_NEAR(this->blob_top_->cpu_data()[i + 8], 3.625, 1e-6);
-      EXPECT_NEAR(this->blob_top_->cpu_data()[i + 9], 4.75, 1e-6);
+      EXPECT_NEAR(this->blob_top_->cpu_data()[i + 9], 4.25, 1e-6);
       EXPECT_NEAR(this->blob_top_->cpu_data()[i + 10], 4.0, 1e-6);
       EXPECT_NEAR(this->blob_top_->cpu_data()[i + 11], 3.5, 1e-6);
       EXPECT_NEAR(this->blob_top_->cpu_data()[i + 12], 3.0, 1e-6);

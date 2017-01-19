@@ -63,9 +63,8 @@ void UNPoolingLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   top[0]->Reshape(bottom[0]->num(), channels_, pooled_height_, pooled_width_);
   // If max pooling, we will initialize the vector index part.
   if (this->layer_param_.pooling_param().pool() ==
-      PoolingParameter_PoolMethod_MAX && top.size() == 1) {
-    max_idx_.Reshape(bottom[0]->num(), channels_, pooled_height_,
-        pooled_width_);
+      PoolingParameter_PoolMethod_AVE && top.size() == 1) {
+      ave_count_.Reshape(bottom[0]->num(), channels_, pooled_height_, pooled_width_);
   }
   // If stochastic pooling, we will initialize the random index part.
   if (this->layer_param_.pooling_param().pool() ==
@@ -84,6 +83,7 @@ void UNPoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   const Dtype* mask_data = NULL;
   Dtype* top_data = top[0]->mutable_cpu_data();
   const int top_count = top[0]->count();
+  Dtype* count_data = NULL;
 
   // Different pooling methods. We explicitly do the switch outside the for
   // loop to save time, although this results in more code.
@@ -103,32 +103,46 @@ void UNPoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
         }
         // compute offset
         bottom_data += bottom[0]->offset(0, 1);
+        mask_data += bottom[1]->offset(0, 1);
         top_data += top[0]->offset(0, 1);
-        mask_data += top[1]->offset(0, 1);
       }
     }
     break;
     case PoolingParameter_PoolMethod_AVE:
+    count_data = ave_count_.mutable_cpu_data();
     // The main loop
+    for (int i = 0; i < top_count; ++i) {
+      top_data[i] = 0;
+      count_data[i] = 0;
+    }
+    
     for (int n = 0; n < bottom[0]->num(); ++n) {
       for (int c = 0; c < channels_; ++c) {
         for (int ph = 0; ph < height_; ++ph) {
           for (int pw = 0; pw < width_; ++pw) {
-            int index = ph * height_ + pw;
+            int index = ph * width_ + pw;
             int hstart = ph * stride_h_;
             int wstart = pw * stride_w_;
             int hend = min(hstart + kernel_h_, pooled_height_);
             int wend = min(wstart + kernel_w_, pooled_width_);
             for (int h = hstart; h < hend; ++h) {
               for (int w = wstart; w < wend; ++w) {
-                top_data[h * pooled_height_ + w] = bottom_data[index]; 
+                top_data[h * pooled_width_ + w] += bottom_data[index]; 
+                count_data[h * pooled_width_ + w] += 1;
               }
             }
           }
         }
+        //get mean.
+        for (int i = 0; i < pooled_height_ * pooled_width_; i++) {
+            if (count_data[i] > 0) {
+                top_data[i] /= count_data[i];
+            }
+        }
         // compute offset
         bottom_data += bottom[0]->offset(0, 1);
         top_data += top[0]->offset(0, 1);
+        count_data += ave_count_.offset(0, 1);
       }
     }
     break;
