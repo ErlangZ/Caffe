@@ -34,6 +34,14 @@ layer {
   }
 }
 layer {
+    name: "showimage1"
+    type: "ShowImage"
+    bottom: "data"
+    show_image_param {
+        image_name:"image"
+    }
+}
+layer {
   name: "conv1"
   type: "Convolution"
   bottom: "data"
@@ -106,7 +114,7 @@ layer {
     lr_mult: 2
   }
   convolution_param {
-    num_output: 32
+    num_output: 3
     pad: 2
     kernel_size: 5
     stride: 1

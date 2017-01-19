@@ -13,13 +13,18 @@ void ShowImageLayer<double>::Forward_cpu(const vector<Blob<double>*>& bottom,
                                     const vector<Blob<double>*>& top) {
     double* image_data = bottom[0]->mutable_cpu_data();
     for (int num = 0; num < bottom[0]->num(); num++) {
-        for (int channel = 0; channel < bottom[0]->channel(); channel++) {
-            cv::Mat image;
+        cv::Mat image;
+        if (bottom[0]->channels() == 1) {
             image = cv::Mat(bottom[0]->height(), bottom[0]->width(), CV_64FC1,
                                     image_data); 
-            cv::imshow(picture_name, image);
-            cv::waitKey(0);
-        } 
+        } else if (bottom[0]->channels() == 3) {
+            image = cv::Mat(bottom[0]->height(), bottom[0]->width(), CV_64FC3,
+                                    image_data); 
+        } else {
+            LOG(FATAL) << "Get Invalid Image Channels:" << bottom[0]->channels();
+        }
+        cv::imshow(picture_name, image);
+        cv::waitKey(0);
     }
 }
 
