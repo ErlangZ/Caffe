@@ -49,6 +49,7 @@ void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom,
 
     float* image_data = bottom[0]->mutable_cpu_data();
     float* cv_data = cv_data_;
+    float* mean = NULL;
     for (int m = 0; m < num; m++) {
     for (int n = 0; n < num; n++) {
         for (int c = 0; c < bottom[0]->channels(); c++) {
@@ -67,14 +68,18 @@ void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom,
                     }
                 }
             }
+            int rbg_c = rbg_channel(c);
+            if (has_mean_file_) mean = mean_data_.mutable_cpu_data();
             for (int h = 0; h < bottom[0]->height(); h++) {
                 for (int w = 0; w < bottom[0]->width(); w++) {
+                    int data_index = c * (height_ * width_) + h * width_ + w;
                     if (!normalize_) {
-                        cv_data[h * channels_ * width_ * num + n * width_ * channels_ + w * channels_ + c] = 
-                                scale_ * image_data[c * (height_ * width_) + h * width_ + w];
+                        cv_data[h * channels_ * width_ * num + n * width_ * channels_ + w * channels_ + rbg_c] = 
+                                scale_ * image_data[data_index] + (has_mean_file_? mean[data_index] : 0.0);
                     } else {
-                        cv_data[h * channels_ * width_ * num + n * width_ * channels_ + w * channels_ + c] = 
-                                scale_ * (image_data[c * (height_ * width_) + h * width_ + w] - min_value)/(max_value - min_value) * 255.0;
+                        //WARN: No Mean file here.
+                        cv_data[h * channels_ * width_ * num + n * width_ * channels_ + w * channels_ + rbg_c] = 
+                                scale_ * (image_data[data_index] - min_value)/(max_value - min_value) * 255.0;
 
                     }
                 }
