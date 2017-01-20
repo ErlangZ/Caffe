@@ -45,9 +45,11 @@ template<>
 void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom, 
                                         const vector<Blob<float>*>& top) {
     
-    int num = std::min(MAX_NUM, num_);
+    int num = std::min(MAX_NUM, static_cast<int>(std::floor(std::sqrt(num_))));
+
     float* image_data = bottom[0]->mutable_cpu_data();
     float* cv_data = cv_data_;
+    for (int m = 0; m < num; m++) {
     for (int n = 0; n < num; n++) {
         for (int c = 0; c < bottom[0]->channels(); c++) {
             float min_value = FLT_MAX;
@@ -68,10 +70,10 @@ void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom,
             for (int h = 0; h < bottom[0]->height(); h++) {
                 for (int w = 0; w < bottom[0]->width(); w++) {
                     if (!normalize_) {
-                        cv_data[h * (channels_ * width_ * num) + w * channels_ + c] = 
+                        cv_data[h * channels_ * width_ * num + n * width_ * channels_ + w * channels_ + c] = 
                                 scale_ * image_data[c * (height_ * width_) + h * width_ + w];
                     } else {
-                        cv_data[h * (channels_ * width_ * num) + w * channels_ + c] = 
+                        cv_data[h * channels_ * width_ * num + n * width_ * channels_ + w * channels_ + c] = 
                                 scale_ * (image_data[c * (height_ * width_) + h * width_ + w] - min_value)/(max_value - min_value) * 255.0;
 
                     }
@@ -79,8 +81,10 @@ void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom,
             }
         }         
         image_data += bottom[0]->offset(1);
-        cv_data += bottom[0]->offset(1) * num;
     }
+    cv_data += bottom[0]->offset(1) * num;
+    }
+
     cv::Mat image;
     if (bottom[0]->channels() == 1) {
         image = cv::Mat(height_ * num, width_ * num, CV_32FC1, cv_data_); 
