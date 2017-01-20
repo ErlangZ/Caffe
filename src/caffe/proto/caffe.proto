@@ -1432,4 +1432,7 @@ message PReLUParameter {
 
 message ShowImageParameter {
   required string image_name = 1;
+  optional bool wait_for_key = 2 [default = false];
+  optional bool normalize = 3 [default = true];
+  optional float scale = 4 [default = 1.0];
 }

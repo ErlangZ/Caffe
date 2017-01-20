@@ -11,6 +11,8 @@ namespace caffe {
 template<>
 void ShowImageLayer<double>::Forward_cpu(const vector<Blob<double>*>& bottom, 
                                     const vector<Blob<double>*>& top) {
+    NOT_IMPLEMENTED;
+    /*
     int num = std::min(MAX_NUM, num_);
     double* image_data = bottom[0]->mutable_cpu_data();
     double* cv_data = cv_data_;
@@ -35,22 +37,44 @@ void ShowImageLayer<double>::Forward_cpu(const vector<Blob<double>*>& bottom,
         LOG(FATAL) << "Get Invalid Image Channels:" << bottom[0]->channels();
     }
     cv::imshow(picture_name.c_str(), image);
-    cv::waitKey(0);
+    if (wait_) cv::waitKey(0);
+    */
 }
 
 template<>
 void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom, 
-                                    const vector<Blob<float>*>& top) {
+                                        const vector<Blob<float>*>& top) {
     
     int num = std::min(MAX_NUM, num_);
     float* image_data = bottom[0]->mutable_cpu_data();
     float* cv_data = cv_data_;
     for (int n = 0; n < num; n++) {
         for (int c = 0; c < bottom[0]->channels(); c++) {
+            float min_value = FLT_MAX;
+            float max_value = -FLT_MAX;
+            if (normalize_) {
+                for (int h = 0; h < bottom[0]->height(); h++) {
+                    for (int w = 0; w < bottom[0]->width(); w++) {
+                        float v = image_data[c * (height_ * width_) + h * width_ + w];
+                        if (v < min_value) {
+                            min_value = v;
+                        }
+                        if (v > max_value) {
+                            max_value = v;
+                        }
+                    }
+                }
+            }
             for (int h = 0; h < bottom[0]->height(); h++) {
                 for (int w = 0; w < bottom[0]->width(); w++) {
+                    if (!normalize_) {
                         cv_data[h * (channels_ * width_ * num) + w * channels_ + c] = 
-                                image_data[c * (height_ * width_) + h * width_ + w];
+                                scale_ * image_data[c * (height_ * width_) + h * width_ + w];
+                    } else {
+                        cv_data[h * (channels_ * width_ * num) + w * channels_ + c] = 
+                                scale_ * (image_data[c * (height_ * width_) + h * width_ + w] - min_value)/(max_value - min_value) * 255.0;
+
+                    }
                 }
             }
         }         
@@ -66,7 +90,7 @@ void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom,
         LOG(FATAL) << "Get Invalid Image Channels:" << bottom[0]->channels();
     }
     cv::imshow(picture_name.c_str(), image);
-    cv::waitKey(0);
+    if (wait_) cv::waitKey(0);
 }
 
 #ifdef CPU_ONLY                                                                                     

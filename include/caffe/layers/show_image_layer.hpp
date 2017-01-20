@@ -31,6 +31,9 @@ class ShowImageLayer : public Layer<Dtype> {
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
       ShowImageParameter show_image_param = this->layer_param_.show_image_param();
       picture_name = show_image_param.image_name(); 
+      wait_ = show_image_param.wait_for_key();
+      normalize_ = show_image_param.normalize();
+      scale_ = show_image_param.scale();
       LOG(INFO) << "ShowImageLayer get ImageName:" << picture_name;
   }
 
@@ -61,6 +64,9 @@ class ShowImageLayer : public Layer<Dtype> {
   int channels_;
   int width_;
   int height_;
+  bool wait_;
+  bool normalize_;
+  Dtype scale_;
   Dtype* cv_data_;
   std::string picture_name;
 };
