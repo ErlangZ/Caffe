@@ -21,9 +21,11 @@ namespace caffe {
 template <typename Dtype>
 class ShowImageLayer : public Layer<Dtype> {
  public:
-  explicit ShowImageLayer(const LayerParameter& param) : Layer<Dtype>(param) {}
+  explicit ShowImageLayer(const LayerParameter& param) : Layer<Dtype>(param) {
+      cv_data_ = NULL;
+  }
   virtual ~ShowImageLayer() {
-      delete[] cv_data;
+      delete[] cv_data_;
   };
 
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
@@ -33,10 +35,12 @@ class ShowImageLayer : public Layer<Dtype> {
   }
 
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+      num_ = bottom[0]->num();
       channels_ = bottom[0]->channels();
       width_ = bottom[0]->width();
       height_ = bottom[0]->height();
-      cv_data = new Dtype[bottom[0]->num() * channels_ * height_ * width_];
+      const int size = num_ * channels_ * height_ * width_;
+      cv_data_ = new Dtype[size];
   }
 
   virtual inline const char* type() const { return "ShowImage"; }
@@ -53,10 +57,11 @@ class ShowImageLayer : public Layer<Dtype> {
       }
   }
   
+  int num_;
   int channels_;
   int width_;
   int height_;
-  Dtype* cv_data;
+  Dtype* cv_data_;
   std::string picture_name;
 };
 
