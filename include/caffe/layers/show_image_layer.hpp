@@ -22,7 +22,9 @@ template <typename Dtype>
 class ShowImageLayer : public Layer<Dtype> {
  public:
   explicit ShowImageLayer(const LayerParameter& param) : Layer<Dtype>(param) {}
-  virtual ~ShowImageLayer() {};
+  virtual ~ShowImageLayer() {
+      delete[] cv_data;
+  };
 
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
       ShowImageParameter show_image_param = this->layer_param_.show_image_param();
@@ -34,7 +36,7 @@ class ShowImageLayer : public Layer<Dtype> {
       channels_ = bottom[0]->channels();
       width_ = bottom[0]->width();
       height_ = bottom[0]->height();
-      cv_data_.Reshape(1, channels_, height_, width_);
+      cv_data = new Dtype[bottom[0]->num() * channels_ * height_ * width_];
   }
 
   virtual inline const char* type() const { return "ShowImage"; }
@@ -54,7 +56,7 @@ class ShowImageLayer : public Layer<Dtype> {
   int channels_;
   int width_;
   int height_;
-  Blob<Dtype> cv_data_;
+  Dtype* cv_data;
   std::string picture_name;
 };
 
