@@ -15,7 +15,8 @@ template <typename Dtype>
 class MaxActivityLayer : public Layer<Dtype> {
 public:
     explicit MaxActivityLayer(const LayerParameter& param) : Layer<Dtype>(param) {
-
+        MaxActivityParameter max_activity_param = this->layer_param_.max_activity_param();
+        top_ = max_activity_param.top_activity();
     }
     virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
         num_ = bottom[0]->num();
@@ -43,6 +44,7 @@ public:
   int channels_;
   int height_;
   int width_;
+  int top_;
 };
 
 }

@@ -23,16 +23,18 @@ void MaxActivityLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     
     for (int n = 0; n < num_; n++) {
         for (int c = 0; c < channels_; c++) {
-            Dtype max_value = -FLT_MAX; 
-            int max_h = -1;
-            int max_w = -1;
+
+            std::map<int, int> max_values;  //int(max_value * 1e6), max_index
+
             for (int h = 0; h < height_; h++) {
             for (int w = 0; w < width_; w++) {
                 int index = h * width_ + w;
-                if (bottom_data[index] > max_value) {
-                    max_value = bottom_data[index];
-                    max_h = h;
-                    max_w = w;
+                int key = static_cast<int>(bottom_data[index] * 1e6);
+                if (max_values.size() < top_ || max_values.begin()->first < key) {  
+                    if (max_values.size() == top_) {
+                        max_values.erase(max_values.begin());
+                    }
+                    max_values.insert(std::make_pair<int, int>(key, index));
                 }
             }
             }
@@ -40,13 +42,24 @@ void MaxActivityLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
             for (int h = 0; h < height_; h++) {
             for (int w = 0; w < width_; w++) {
                 int index = h * width_ + w;
-                if (max_h == h && max_w == w) {
+                int found = false;
+                for (std::map<int, int>::iterator iter = max_values.begin(); 
+                        iter != max_values.end(); 
+                        iter++) {
+                    if (index == iter->second) {
+                        found = true;
+                    }
+                }
+                if (found) {
                     top_data[index] = bottom_data[index];
                 } else {
                     top_data[index] = 0.0;
                 }
             }
             }
+
+            bottom_data += bottom[0]->offset(0, 1);
+            top_data += top[0]->offset(0, 1);
         }
     }
 }

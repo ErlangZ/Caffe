@@ -407,6 +407,7 @@ message LayerParameter {
 
   optional PCDDataParameter pcd_data_param = 3000;
   optional ShowImageParameter show_image_param = 3001;
+  optional MaxActivityParameter max_activity_param = 3002; 
 
   optional smartseg.ConfigParameter smartseg_config_param = 2000;
   optional smartseg.FrameDataParameter smartseg_frame_data_param = 2001;
@@ -1436,4 +1437,8 @@ message ShowImageParameter {
   optional bool normalize = 3 [default = true];
   optional float scale = 4 [default = 1.0];
   optional string mean_file = 5;
+}
+
+message MaxActivityParameter {
+  optional int32 top_activity = 1 [default = 1];
 }
