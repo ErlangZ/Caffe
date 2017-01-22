@@ -29,7 +29,9 @@ template <typename Dtype>
 class DeconvolutionLayer : public BaseConvolutionLayer<Dtype> {
  public:
   explicit DeconvolutionLayer(const LayerParameter& param)
-      : BaseConvolutionLayer<Dtype>(param) {}
+      : BaseConvolutionLayer<Dtype>(param) {
+//      flag = false;      
+  }
 
   virtual inline const char* type() const { return "Deconvolution"; }
 
@@ -44,6 +46,8 @@ class DeconvolutionLayer : public BaseConvolutionLayer<Dtype> {
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   virtual inline bool reverse_dimensions() { return true; }
   virtual void compute_output_shape();
+// private:
+//  bool flag;
 };
 
 }  // namespace caffe

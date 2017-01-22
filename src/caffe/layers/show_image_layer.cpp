@@ -67,7 +67,11 @@ void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom,
                         }
                     }
                 }
+            } else {
+                max_value = 1.0;
+                min_value = 0.0;
             }
+            
             int rbg_c = rbg_channel(c);
             if (has_mean_file_) mean = mean_data_.mutable_cpu_data();
             for (int h = 0; h < bottom[0]->height(); h++) {
@@ -78,8 +82,8 @@ void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom,
                                 scale_ * image_data[data_index] + (has_mean_file_? mean[data_index] : 0.0);
                     } else {
                         //WARN: No Mean file here.
-                        cv_data[h * channels_ * width_ * num + n * width_ * channels_ + w * channels_ + rbg_c] = 
-                                scale_ * (image_data[data_index] - min_value)/(max_value - min_value) * 255.0;
+                        cv_data[h * channels_ * width_ * num + n * width_ * channels_ + w * channels_ + rbg_c] =  image_data[data_index];
+                               // scale_ * (image_data[data_index] - min_value)/(max_value - min_value);
 
                     }
                 }

@@ -42,6 +42,7 @@ protected:
   int kernel_h_, kernel_w_;
   int stride_h_, stride_w_;
   //int pad_h_, pad_w_; Unpooling should has no padding.
+  Dtype scale_;
   int channels_;
   int height_, width_;
   int pooled_height_, pooled_width_;

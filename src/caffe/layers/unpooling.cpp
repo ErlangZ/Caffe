@@ -99,6 +99,11 @@ void UNPoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
             int index = ph * height_ + pw;
             int max_pool_index = static_cast<int>(mask_data[index]);
             top_data[max_pool_index] = bottom_data[index]; 
+            /*
+            if (n == 0) {
+                std::cout << "UNPooling: MAX" << max_pool_index << " "<< top_data[max_pool_index] << std::endl;
+            }
+            */
           }
         }
         // compute offset
@@ -138,6 +143,11 @@ void UNPoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
             if (count_data[i] > 0) {
                 top_data[i] /= count_data[i];
             }
+            /*
+            if (n == 0) {
+                std::cout << "UNPooling: AVE" << i << " "<< top_data[i] << std::endl;
+            }
+            */
         }
         // compute offset
         bottom_data += bottom[0]->offset(0, 1);
