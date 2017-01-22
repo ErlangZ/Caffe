@@ -78,16 +78,11 @@ layer {
     stride: 2
   }
 }
-layer {
-  name: "max_activity"  
-  type: "MaxActivity"
-  bottom: "pool1"
-  top: "max_act"
-}
+
 layer {
   name: "conv2"
   type: "Convolution"
-  bottom: "max_act"
+  bottom: "pool1"
   top: "conv2"
   param {
     lr_mult: 1
@@ -120,9 +115,18 @@ layer {
   }
 }
 layer {
+  name: "max_activity"  
+  type: "MaxActivity"
+  bottom: "pool2"
+  top: "max_act"
+  max_activity_param {
+  top_activity: 9
+  }
+}
+layer {
   name: "unpool2"
   type: "UNPooling"
-  bottom: "pool2"
+  bottom: "max_act"
   bottom: "pool2_mask"
   top: "unpool2"
   pooling_param {
