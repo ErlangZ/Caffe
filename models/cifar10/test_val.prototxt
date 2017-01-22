@@ -190,9 +190,15 @@ layer {
   }
 }
 layer {
+  name: "max_activity"  
+  type: "MaxActivity"
+  bottom: "pool3"
+  top: "max_act"
+}
+layer {
   name: "unpool3"
   type: "UNPooling"
-  bottom: "pool3"
+  bottom: "max_act"
   top: "unpool3"
   pooling_param {
     pool: AVE

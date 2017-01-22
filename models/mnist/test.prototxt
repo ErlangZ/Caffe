@@ -79,9 +79,15 @@ layer {
   }
 }
 layer {
+  name: "max_activity"  
+  type: "MaxActivity"
+  bottom: "pool1"
+  top: "max_act"
+}
+layer {
   name: "conv2"
   type: "Convolution"
-  bottom: "pool1"
+  bottom: "max_act"
   top: "conv2"
   param {
     lr_mult: 1
@@ -178,8 +184,8 @@ layer {
     bottom: "deconv1"
     show_image_param {
         image_name:"decov1"
-        scale: 1.0 
-        normalize: false               
+        scale: 255.0 
+        normalize: true               
         wait_for_key: true
     }
 }
