@@ -8,7 +8,7 @@
 
 #include <fstream>  // NOLINT(readability/streams)
 #include <string>
-
+#include <opencv2/opencv.hpp>
 #include "boost/scoped_ptr.hpp"
 #include "glog/logging.h"
 #include "google/protobuf/text_format.h"
@@ -35,8 +35,27 @@ void read_image(std::ifstream* file, int* label, char* buffer) {
   *label = label_char;
   file->read(rbg_buffer, 3072);
   for (int i = 0; i < 1024; i++) {
-      buffer[i] = static_cast<char>((static_cast<int>(rbg_buffer[i]) + rbg_buffer[i + 1024] + rbg_buffer[i + 2048])/3);
+      buffer[i] = 0.299 * rbg_buffer[i] + 0.587 * rbg_buffer[i + 1024] + 0.114 * rbg_buffer[i + 2048];
   }
+#ifndef DEBUG
+  std::vector<cv::Mat> rbgs; 
+  cv::Mat r(32, 32, CV_8UC1, rbg_buffer);
+  cv::Mat g(32, 32, CV_8UC1, rbg_buffer+1024);
+  cv::Mat b(32, 32, CV_8UC1, rbg_buffer+2048);
+  rbgs.push_back(r);
+  rbgs.push_back(g);
+  rbgs.push_back(b);
+  cv::Mat rbg_image = cv::Mat::zeros(32, 32, CV_8UC3);;
+  cv::merge(rbgs, rbg_image);
+  
+  cv::Mat image(32, 32, CV_8UC1, buffer);
+  cv::imshow("gray-image", image);
+  cv::imshow("rbg-image", rbg_image);
+  cv::imshow("r-image", r);
+  cv::imshow("g-image", g);
+  cv::imshow("b-image", b);
+  cv::waitKey(0);
+#endif
   return;
 }
 
