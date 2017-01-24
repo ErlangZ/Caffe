@@ -48,61 +48,27 @@ void ShowImageLayer<float>::Forward_cpu(const vector<Blob<float>*>& bottom,
     int num = std::min(MAX_NUM, static_cast<int>(std::floor(std::sqrt(num_))));
 
     float* image_data = bottom[0]->mutable_cpu_data();
-    float* cv_data = cv_data_;
-    float* mean = NULL;
-    for (int m = 0; m < num; m++) {
-    for (int n = 0; n < num; n++) {
-        for (int c = 0; c < bottom[0]->channels(); c++) {
-            float min_value = FLT_MAX;
-            float max_value = -FLT_MAX;
-            if (normalize_) {
-                for (int h = 0; h < bottom[0]->height(); h++) {
-                    for (int w = 0; w < bottom[0]->width(); w++) {
-                        float v = image_data[c * (height_ * width_) + h * width_ + w];
-                        if (v < min_value) {
-                            min_value = v;
-                        }
-                        if (v > max_value) {
-                            max_value = v;
-                        }
-                    }
-                }
-            } else {
-                max_value = 1.0;
-                min_value = 0.0;
-            }
-            
-            int rbg_c = rbg_channel(c);
-            if (has_mean_file_) mean = mean_data_.mutable_cpu_data();
-            for (int h = 0; h < bottom[0]->height(); h++) {
-                for (int w = 0; w < bottom[0]->width(); w++) {
-                    int data_index = c * (height_ * width_) + h * width_ + w;
-                    if (!normalize_) {
-                        cv_data[h * channels_ * width_ * num + n * width_ * channels_ + w * channels_ + rbg_c] = 
-                                scale_ * image_data[data_index] + (has_mean_file_? mean[data_index] : 0.0);
-                    } else {
-                        //WARN: No Mean file here.
-                        cv_data[h * channels_ * width_ * num + n * width_ * channels_ + w * channels_ + rbg_c] =  image_data[data_index];
-                               // scale_ * (image_data[data_index] - min_value)/(max_value - min_value);
 
-                    }
-                }
-            }
-        }         
-        image_data += bottom[0]->offset(1);
+    int offset = 0;
+    if (false) {
+        caffe_sub(mean_data_.count(), image_data + offset, mean_data_.cpu_data(), image_data + offset);     
+        offset += height_ * width_;                                  
+        caffe_sub(mean_data_.count(), image_data + offset, mean_data_.cpu_data(), image_data + offset);     
+        offset += height_ * width_;                                  
+        caffe_sub(mean_data_.count(), image_data + offset, mean_data_.cpu_data(), image_data + offset);     
     }
-    cv_data += bottom[0]->offset(1) * num;
-    }
-
-    cv::Mat image;
-    if (bottom[0]->channels() == 1) {
-        image = cv::Mat(height_ * num, width_ * num, CV_32FC1, cv_data_); 
-    } else if (bottom[0]->channels() == 3) {
-        image = cv::Mat(height_ * num, width_ * num, CV_32FC3, cv_data_); 
-    } else {
-        LOG(FATAL) << "Get Invalid Image Channels:" << bottom[0]->channels();
-    }
-    cv::imshow(picture_name.c_str(), image);
+    cv::Mat image1 = cv::Mat(height_, width_, CV_32FC1, image_data);
+//    normalize(image1,image1,255.0,0.0,cv::NORM_MINMAX);
+    cv::Mat image2 = cv::Mat(height_, width_, CV_32FC1, image_data + height_ * width_);
+//    normalize(image2,image2,255.0,0.0,cv::NORM_MINMAX);
+    cv::Mat image3 = cv::Mat(height_, width_, CV_32FC1, image_data + 2 * height_ * width_);
+//    normalize(image3,image3,255.0,0.0,cv::NORM_MINMAX);
+    std::string name1("image1");
+    std::string name2("image2");
+    std::string name3("image3");
+    cv::imshow((picture_name+name1).c_str(), image1);
+    cv::imshow((picture_name+name2).c_str(), image2);
+    cv::imshow((picture_name+name3).c_str(), image3);
     if (wait_) cv::waitKey(0);
 }
 

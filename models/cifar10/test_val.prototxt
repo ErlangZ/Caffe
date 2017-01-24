@@ -39,6 +39,7 @@ layer {
     type: "ShowImage"
     bottom: "data"
     show_image_param {
+        mean_file: "mean.binaryproto"
         image_name:"image"
         normalize: false               
     }
@@ -208,15 +209,22 @@ layer {
   }
 }
 layer {
+  name: "crop"
+  type: "Crop"
+  bottom: "unpool3"
+  bottom: "conv3"
+  top: "croped-unpool3"
+}
+layer {
   name: "unrelu3"
   type: "ReLU"
-  bottom: "unpool3"
-  top: "unpool3"
+  bottom: "croped-unpool3"
+  top: "croped-unpool3"
 }
 layer {
   name: "conv3"
   type: "Deconvolution"
-  bottom: "unpool3"
+  bottom: "croped-unpool3"
   top: "deconv3"
   param {
     lr_mult: 1
@@ -225,7 +233,7 @@ layer {
     lr_mult: 2
   }
   convolution_param {
-    num_output: 64 
+    num_output: 32 
     pad: 2
     kernel_size: 5
     stride: 1
@@ -243,15 +251,22 @@ layer{
   }
 }
 layer {
+  name: "crop"
+  type: "Crop"
+  bottom: "unpool2"
+  bottom: "conv2"
+  top: "croped-unpool2"
+}
+layer {
   name: "unrelu2"
   type: "ReLU"
-  bottom: "unpool2"
-  top: "unpool2"
+  bottom: "croped-unpool2"
+  top: "croped-unpool2"
 }
 layer {
   name: "conv2"
   type: "Deconvolution"
-  bottom: "unpool2"
+  bottom: "croped-unpool2"
   top: "deconv2"
   param {
     lr_mult: 1
@@ -279,9 +294,16 @@ layer {
   }
 }
 layer {
+  name: "crop"
+  type: "Crop"
+  bottom: "unpool1"
+  bottom: "conv1"
+  top: "croped-unpool1"
+}
+layer {
   name: "conv1"
   type: "Deconvolution"
-  bottom: "unpool1"
+  bottom: "croped-unpool1"
   top: "deconv1"
   param {
     lr_mult: 1
@@ -302,9 +324,10 @@ layer {
     type: "ShowImage"
     bottom: "deconv1"
     show_image_param {
+        mean_file: "mean.binaryproto"
         image_name:"decov1"
-        scale: 1.0 
-        normalize: false               
+        scale: 100.0 
+        normalize: true               
         wait_for_key: true
     }
 }
