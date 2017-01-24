@@ -63,7 +63,6 @@ layer {
   type: "Pooling"
   bottom: "conv1"
   top: "pool1"
-  top: "pool1_mask"
   pooling_param {
     pool: MAX
     kernel_size: 3

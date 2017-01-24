@@ -33,6 +33,7 @@ layer {
     backend: LMDB
   }
 }
+
 layer {
     name: "showimage1"
     type: "ShowImage"
@@ -42,6 +43,7 @@ layer {
         normalize: false               
     }
 }
+
 layer {
   name: "conv1"
   type: "Convolution"
@@ -85,7 +87,6 @@ layer {
   bottom: "pool1"
   top: "pool1"
 }
-
 layer {
   name: "norm1"
   type: "LRN"
@@ -140,7 +141,6 @@ layer {
     stride: 2
   }
 }
-
 layer {
   name: "norm2"
   type: "LRN"
@@ -195,6 +195,7 @@ layer {
   bottom: "pool3"
   top: "max_act"
 }
+
 layer {
   name: "unpool3"
   type: "UNPooling"
@@ -230,8 +231,7 @@ layer {
     stride: 1
   }
 }
-
-layer {
+layer{
   name: "unpool2"
   type: "UNPooling"
   bottom: "deconv3"
@@ -308,6 +308,7 @@ layer {
         wait_for_key: true
     }
 }
+
 layer {
   name: "ip1"
   type: "InnerProduct"

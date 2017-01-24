@@ -759,7 +759,7 @@ void Net<Dtype>::CopyTrainedLayersFrom(const NetParameter& param) {
         }
     }
     if (target_layer_ids.empty()) {
-      LOG(WARNING) << "Ignoring source layer " << source_layer_name;
+      LOG(FATAL) << "Ignoring source layer " << source_layer_name;
       continue;
     }
     for (int i = 0; i < target_layer_ids.size(); i++) {
@@ -771,12 +771,21 @@ void Net<Dtype>::CopyTrainedLayersFrom(const NetParameter& param) {
             << "Incompatible number of blobs for layer " << source_layer_name;
         for (int j = 0; j < target_blobs.size(); ++j) {
             if (!target_blobs[j]->ShapeEquals(source_layer.blobs(j))) {
-                const bool kReshape = true;
-                target_blobs[j]->FromProto(source_layer.blobs(j), kReshape);
-                /*
                 Blob<Dtype> source_blob;
                 const bool kReshape = true;
                 source_blob.FromProto(source_layer.blobs(j), kReshape);
+                const int size = source_blob.offset(0, 1); 
+                target_blobs[j]->Reshape(source_blob.channels(), source_blob.num(), source_blob.height(), source_blob.width());
+                Dtype* target_data = target_blobs[j]->mutable_cpu_data();
+                Dtype* source_data = source_blob.mutable_cpu_data();
+                //Revese the Num & Channels 64x3x5x5->3x64x5x5
+                for (int n = 0; n < source_blob.num(); n++) {
+                    for (int c = 0; c < source_blob.channels(); c++) {
+                        caffe_copy(size, source_data, target_data + (c * source_blob.num() + n) * size);
+                        source_data += size;
+                    }
+                } 
+                /*
                 LOG(FATAL) << "Cannot copy param " << j << " weights from layer '"
                     << source_layer_name << "'; shape mismatch.  Source param shape is "
                     << source_blob.shape_string() << "; target param shape is "
@@ -813,6 +822,7 @@ void Net<Dtype>::CopyTrainedLayersFromBinaryProto(
 
 template <typename Dtype>
 void Net<Dtype>::CopyTrainedLayersFromHDF5(const string trained_filename) {
+
   hid_t file_hid = H5Fopen(trained_filename.c_str(), H5F_ACC_RDONLY,
                            H5P_DEFAULT);
   CHECK_GE(file_hid, 0) << "Couldn't open " << trained_filename;
