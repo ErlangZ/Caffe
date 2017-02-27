@@ -36,12 +36,14 @@ class YoloPretrainedLossLayer : public Layer<Dtype> {
 
   virtual inline const char* type() const { return "YoloPretrainedLoss"; }
   /**
-   * Unlike most loss layers, in the YoloPretrainedLossLayer we can backpropagate
-   * to both inputs -- override to return true and always allow force_backward.
+   * We usually cannot backpropagate to the labels; ignore force_backward for
+   * these inputs.
    */
   virtual inline bool AllowForceBackward(const int bottom_index) const {
-    return true;
+    return bottom_index != 0;
   }
+
+  virtual inline bool AutoTopBlobs() const { return true; }
 
  protected:
   /// @copydoc YoloPretrainedLossLayer
