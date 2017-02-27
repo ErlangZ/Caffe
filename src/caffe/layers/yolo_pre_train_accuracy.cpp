@@ -12,7 +12,7 @@ void YoloPreTrainAccuracyLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bo
                                                   const vector<Blob<Dtype>*>& top) {
     //bottom[0] is label
     //bottom[1...C] is output
-    error_ = Dtype(0.01);
+    error_ = this->layer_param_.yolo_pretrain_accuracy_param().error();
 }
 
 template <typename Dtype>

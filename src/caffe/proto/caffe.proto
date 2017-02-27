@@ -426,7 +426,8 @@ message LayerParameter {
   optional smartseg.ViewPoolingParameter smartseg_view_pooling_param = 2011;
   optional smartseg.ViewUnpoolingParameter smartseg_view_unpooling_param = 2012;
   optional smartseg.PointInterpolationParameter smartseg_point_interpolation_param = 2013;
-
+    
+  optional YoloPreTrainAccuracyParam yolo_pretrain_accuracy_param = 4000;
 }
 
 // Message that stores parameters used to apply transformation
@@ -742,6 +743,10 @@ message EmbedParameter {
   optional FillerParameter weight_filler = 4; // The filler for the weight
   optional FillerParameter bias_filler = 5; // The filler for the bias
 
+}
+
+message YoloPreTrainAccuracyParam {
+    optional float error = 1 [default = 0.000001];
 }
 
 // Message that stores parameters used by ExpLayer
