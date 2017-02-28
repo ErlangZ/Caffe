@@ -39,10 +39,9 @@ void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
   vector<int> right(channels_, 0);
   Dtype all(0.0);
 
-  Blob<Dtype>* label_layer = bottom[0];
-  const Dtype* label_data = label_layer->cpu_data();
+  const Dtype* label_data = bottom[0]->cpu_data();
 
-  for(int n = 0; n < label_layer->num(); n++) {
+  for(int n = 0; n < bottom[0]->num(); n++) {
       bool hit = true; 
       for (int c = 1; c <= channels_; c++) {
         const Dtype* output_data = bottom[c]->cpu_data();
@@ -57,19 +56,14 @@ void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
       if (hit) all_right_count ++;
       all += 1.0;
 
-      label_data += label_layer->count(1);
+      label_data += bottom[0]->count(1);
   }
 
-
-//  std::stringstream ss;
   top[0]->mutable_cpu_data()[0] = all_right_count/all;
-//  ss << "YoloPreTrainAccuracy all:" << top[0]->cpu_data()[0] * 100 << "% ";
   for (int c = 0; c < right.size(); c++) {
     top[0]->mutable_cpu_data()[c+1] = right[c]/all;
-//      ss << " class:" << c-1 << "[" << top[0]->mutable_cpu_data()[c] << "] ";
   }
-//  LOG(INFO) << ss.str(); 
-// Accuracy layer should not be used as a loss function.
+  // Accuracy layer should not be used as a loss function.
 }
 
 INSTANTIATE_CLASS(YoloPreTrainAccuracyLayer);

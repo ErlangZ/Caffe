@@ -50,7 +50,7 @@ void YoloPretrainedLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bot
             const Dtype& y = target_data[c];
             const Dtype& x = input_data[c];
             loss -= x * (y - (x>=0)) - log(1 + exp(x - 2 * x * (x>=0)));
-            std::cout << "Channel:" << c << " loss:" << loss << " target_data:" << y << " input_data: "<< x << std::endl;
+            //std::cout << "Channel:" << c << " loss:" << loss << " target_data:" << y << " input_data: "<< x << std::endl;
         }
         target_data += target_layer->count(1);
     }
@@ -72,7 +72,7 @@ void YoloPretrainedLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& to
             const Dtype& y = target_data[c];
             const Dtype& h = sigmoid(output_data[c]);
             bottom[c]->mutable_cpu_diff()[i] = h - y;
-            std::cout << "Channel:" << c << " diff:" << h - y << " target_data:" << y << " input_data: "<< h << std::endl;
+            //std::cout << "Channel:" << c << " diff:" << h - y << " target_data:" << y << " input_data: "<< h << std::endl;
         }
         target_data += target_layer->count(1);
     }
