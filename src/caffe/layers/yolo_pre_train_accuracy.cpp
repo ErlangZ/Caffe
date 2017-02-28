@@ -53,7 +53,7 @@ void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
         const Dtype h = sigmoid(input_data[n]);
         if (h > error_ && label_data[c-1] > 1e-6) {
             right[c-1] ++;
-        } else if (h < error_ && label_data[c-1] <= 1e-6) {
+        } else if (h <= error_ && label_data[c-1] <= 1e-6) {
             right[c-1] ++;
         } else {
             hit = false;
