@@ -10,12 +10,12 @@ TOOLS=/home/erlangz/Caffe/build/tools
 TRAIN_DATA_ROOT=./train/
 VAL_DATA_ROOT=./test/
 
-# Set RESIZE=true to resize the images to 256x256. Leave as false if images have
+# Set RESIZE=true to resize the images to 448*448. Leave as false if images have
 # already been resized using another tool.
 RESIZE=true
 if $RESIZE; then
-  RESIZE_HEIGHT=256
-  RESIZE_WIDTH=256
+  RESIZE_HEIGHT=448
+  RESIZE_WIDTH=448
 else
   RESIZE_HEIGHT=0
   RESIZE_WIDTH=0

@@ -51,6 +51,7 @@ void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
       for (int c = 1; c <= channels_; c++) {
         const Dtype* input_data = bottom[c]->cpu_data();
         const Dtype h = sigmoid(input_data[n]);
+        //std::cout << "n:" << n << " c:" << c << " h:" << h << "label:" << label_data[c-1] << std::endl;
         if (h > error_ && label_data[c-1] > 1e-6) {
             right[c-1] ++;
         } else if (h <= error_ && label_data[c-1] <= 1e-6) {
@@ -64,11 +65,14 @@ void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
 
       label_data += bottom[0]->count(1);
   }
-
+  
+  //std::cout << "all:" << all ;
   top[0]->mutable_cpu_data()[0] = all_right_count/all;
   for (int c = 0; c < right.size(); c++) {
     top[0]->mutable_cpu_data()[c+1] = right[c]/all;
+  //  std::cout << " "<< right[c];
   }
+  //std::cout << std::endl;
   // Accuracy layer should not be used as a loss function.
 }
 

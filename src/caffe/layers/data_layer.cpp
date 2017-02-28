@@ -109,9 +109,12 @@ void DataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
         if (labels_number == 1) {
             top_label[item_id] = datum.label();
         } else {
+            //std::cout << "Load label:";
             for (int i = 0; i < labels_number; i++) {
+            //    std::cout << datum.multi_labels(i) << " ";
                 top_label[item_id * labels_number + i] = datum.multi_labels(i);
             }
+            //std::cout << std::endl;
         }
     }
     trans_time += timer.MicroSeconds();

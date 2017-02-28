@@ -76,19 +76,19 @@ int main(int argc, char** argv) {
   std::ifstream infile(argv[2]);
   std::vector<std::pair<std::string, std::vector<int> > > lines;
   std::string line;
-  size_t pos;
 
   // Multi-Labels filename\t
   const int labels_number = FLAGS_labels_number;
-  std::vector<int> labels(labels_number, 0);
-  std::string file_name;
   while (std::getline(infile, line)) {
+      std::vector<int> labels(labels_number, 0);
+      std::string file_name;
       std::stringstream ss;
       ss << line;
       ss >> file_name;
       for (int i = 0; i < labels_number; i++) {
           ss >> labels[i]; 
       }
+      
       lines.push_back(std::make_pair(file_name, labels));
   }
   if (FLAGS_shuffle) {
@@ -111,7 +111,6 @@ int main(int argc, char** argv) {
 
   // Storing to db
   //std::string root_folder(argv[1]);
-  Datum datum;
   int count = 0;
   int data_size = 0;
   bool data_size_initialized = false;
@@ -128,6 +127,7 @@ int main(int argc, char** argv) {
       enc = fn.substr(p);
       std::transform(enc.begin(), enc.end(), enc.begin(), ::tolower);
     }
+    Datum datum;
     status = ReadImageToDatum(lines[line_id].first,
         lines[line_id].second, resize_height, resize_width, is_color,
         enc, &datum);
