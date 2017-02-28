@@ -8,6 +8,11 @@
 #include <float.h>
 namespace caffe {
 
+template <typename Dtype>
+inline Dtype sigmoid(Dtype x) {
+  return 1. / (1. + exp(-x));
+}
+
 template<typename Dtype>
 void YoloPretrainedLossLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
                                                 const vector<Blob<Dtype>*>& top) {
@@ -40,14 +45,16 @@ void YoloPretrainedLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bot
     Blob<Dtype>* target_layer = bottom[0];
     const Dtype* target_data = target_layer->cpu_data();
     for (int i = 1; i < bottom.size(); i++)  {
-        const Dtype* output_data = bottom[i]->cpu_data();
+        const Dtype* input_data = bottom[i]->cpu_data();
         for (int c = 0; c < target_layer->channels(); c++) {
-            loss -= target_data[c] * log(0.0001 + output_data[c]) + (1 - target_data[c]) * log(1.0001 - output_data[c]);
-            //std::cout << "Channel:" << c << " loss:" << loss << " target_data:" << target_data[c] << " output_data: "<< output_data[c] << std::endl;
+            const Dtype& y = target_data[c];
+            const Dtype& x = input_data[c];
+            loss -= x * (y - (x>=0)) - log(1 + exp(x - 2 * x * (x>=0)));
+            std::cout << "Channel:" << c << " loss:" << loss << " target_data:" << y << " input_data: "<< x << std::endl;
         }
         target_data += target_layer->count(1);
     }
-    loss /= target_layer->num();
+    loss /= target_layer->count();
     top[0]->mutable_cpu_data()[0] = loss;
 }
 
@@ -55,38 +62,22 @@ template<typename Dtype>
 void YoloPretrainedLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
                                                   const vector<bool>& propagate_down,
                                                   const vector<Blob<Dtype>*>& bottom) {
-//    std::cout << "top size:" << top.size() << " shape:" << top[0]->shape_string() << std::endl;
-//    std::cout << "bottom size:" << bottom.size() << " shape:" << bottom[0]->shape_string() << std::endl;
     // Top & Bottom is inversed with Forward_cpu
     Blob<Dtype>* target_layer = bottom[0];
     const Dtype* target_data = target_layer->cpu_data();
     for (int i = 0; i < bottom.size(); i++)  {
         if (!propagate_down[i]) continue; 
         const Dtype* output_data = bottom[i]->cpu_data();
-/*
-        std::cout << "OutputData:" << "num:" << i << std::endl;
-        for (int j = 0; j < 20; j++) {
-            std::cout << output_data[j] << " ";
-        }
-        std::cout << std::endl; 
-*/
         for (int c = 0; c < target_layer->channels(); c++) {
-            Dtype diff = 0.0;
-            /*if (fabs(output_data[c]) < 1e-4) {
-                diff = -FLT_MAX; 
-            } else if(fabs(1 - output_data[c]) < 1e-4) {
-                diff = FLT_MAX; 
-            } else {
-                diff = (1 - target_data[c]) / (1 - output_data[c]) - (target_data[c] / (output_data[c]));
-            }
-            */
-            diff = (1 - target_data[c]) / (1.0001 - output_data[c]) - (target_data[c] / (0.0001 + output_data[c]));
-            //std::cout << "Channel:" << c << " Diff:" << diff << std::endl;
-            bottom[c]->mutable_cpu_diff()[i] = diff;
+            const Dtype& y = target_data[c];
+            const Dtype& h = sigmoid(output_data[c]);
+            bottom[c]->mutable_cpu_diff()[i] = h - y;
+            std::cout << "Channel:" << c << " diff:" << h - y << " target_data:" << y << " input_data: "<< h << std::endl;
         }
         target_data += target_layer->count(1);
     }
 }
+
 #ifdef CPU_ONLY                                                                                     
 STUB_GPU(YoloPretrainedLossLayer);                                                                       
 #endif                                                                                              
