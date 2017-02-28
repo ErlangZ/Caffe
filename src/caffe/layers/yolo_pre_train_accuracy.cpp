@@ -40,36 +40,32 @@ void YoloPreTrainAccuracyLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& botto
 template <typename Dtype>
 void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                                                    const vector<Blob<Dtype>*>& top) {
-  int all_right_count = 0;
   vector<int> right(channels_, 0);
   Dtype all(0.0);
 
   const Dtype* label_data = bottom[0]->cpu_data();
 
   for(int n = 0; n < bottom[0]->num(); n++) {
-      bool hit = true; 
+      int right_count = 0;
       for (int c = 1; c <= channels_; c++) {
         const Dtype* input_data = bottom[c]->cpu_data();
         const Dtype h = sigmoid(input_data[n]);
         //std::cout << "n:" << n << " c:" << c << " h:" << h << "label:" << label_data[c-1] << std::endl;
         if (h > error_ && label_data[c-1] > 1e-6) {
-            right[c-1] ++;
+            right_count ++;
         } else if (h <= error_ && label_data[c-1] <= 1e-6) {
-            right[c-1] ++;
-        } else {
-            hit = false;
-        }
+            right_count ++;
+        } 
       }
-      if (hit) all_right_count ++;
+      right[right_count] ++;
       all += 1.0;
 
       label_data += bottom[0]->count(1);
   }
   
   //std::cout << "all:" << all ;
-  top[0]->mutable_cpu_data()[0] = all_right_count/all;
   for (int c = 0; c < right.size(); c++) {
-    top[0]->mutable_cpu_data()[c+1] = right[c]/all;
+    top[0]->mutable_cpu_data()[c] = right[c]/all;
   //  std::cout << " "<< right[c];
   }
   //std::cout << std::endl;
