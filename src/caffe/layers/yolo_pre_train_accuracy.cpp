@@ -8,6 +8,11 @@
 namespace caffe {
 
 template <typename Dtype>
+inline Dtype sigmoid(Dtype x) {
+  return 1. / (1. + exp(-x));
+}
+
+template <typename Dtype>
 void YoloPreTrainAccuracyLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom, 
                                                   const vector<Blob<Dtype>*>& top) {
     //bottom[0] is label
@@ -44,10 +49,11 @@ void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
   for(int n = 0; n < bottom[0]->num(); n++) {
       bool hit = true; 
       for (int c = 1; c <= channels_; c++) {
-        const Dtype* output_data = bottom[c]->cpu_data();
-        if (output_data[n] > error_ && label_data[c-1] > 1e-6) {
+        const Dtype* input_data = bottom[c]->cpu_data();
+        const Dtype h = sigmoid(input_data[n]);
+        if (h > error_ && label_data[c-1] > 1e-6) {
             right[c-1] ++;
-        } else if (output_data[n] < error_ && label_data[c-1] <= 1e-6) {
+        } else if (h < error_ && label_data[c-1] <= 1e-6) {
             right[c-1] ++;
         } else {
             hit = false;
