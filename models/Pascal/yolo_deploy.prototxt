@@ -1,35 +1,15 @@
-name: "tiny-yolo"
-layer {
-  name: "pascal"
-  type: "Data"
-  top: "data"
-  top: "labels"
-  include {
-    phase: TRAIN
-  }
-  data_param {
-    source: "pascal_train_lmdb"
-    batch_size: 1
-    labels_number: 20
-    backend: LMDB
-  }
-}
-layer {
-  name: "pascal"
-  type: "Data"
-  top: "data"
-  top: "labels"
-  include {
-    phase: TEST
-  }
-  data_param {
-    source: "pascal_val_lmdb"
-    batch_size: 1
-    labels_number: 20
-    backend: LMDB
-  }
 
+name: "tiny-yolo"
+
+layer {
+name: "input"
+type: "Input"
+top: "data"
+input_param { shape: { dim: 1 dim: 3 dim: 448 dim: 448 } }
 }
+
+
+
 
 layer {
   name: "conv1"
@@ -38,7 +18,7 @@ layer {
   top: "conv1"
   param {                                                                                           
      lr_mult: 100                                                                                      
-     decay_mult: 1
+     decay_mult: 250
   }                                                                                                                                                                                                                  
   convolution_param {
     num_output: 16
@@ -78,7 +58,7 @@ layer {
   top: "conv2"
   param {                                                                                           
      lr_mult: 100                                                                                      
-     decay_mult: 1
+     decay_mult: 250
   }                                                                                                                                                                                                                  
   convolution_param {
     num_output: 32
@@ -118,7 +98,7 @@ layer {
   top: "conv3"
   param {                                                                                           
      lr_mult: 100                                                                                      
-     decay_mult: 1
+     decay_mult: 250
   }                                                                                                                                                                                                                  
   convolution_param {
     num_output: 64
@@ -159,7 +139,7 @@ layer {
   top: "conv4"
   param {                                                                                           
      lr_mult: 10                                                                                      
-     decay_mult: 1
+     decay_mult: 250
   }                                                                                                                                                                                                                  
   convolution_param {
     num_output: 128
@@ -200,7 +180,7 @@ layer {
   top: "conv5"
   param {                                                                                           
      lr_mult: 10                                                                                      
-     decay_mult: 1
+     decay_mult: 250
   }                                                                                                                                                                                                                  
   convolution_param {
     num_output: 256
@@ -241,7 +221,7 @@ layer {
   top: "conv6"
   param {                                                                                           
      lr_mult: 10                                                                                      
-     decay_mult: 1
+     decay_mult: 250
   }                                                                                                                                                                                                                  
   convolution_param {
     num_output: 512
@@ -282,7 +262,7 @@ layer {
   top: "conv7"
   param {                                                                                           
      lr_mult: 10                                                                                      
-     decay_mult: 1
+     decay_mult: 250
   }                                                                                                                                                                                                                  
   convolution_param {
     num_output: 1024
@@ -312,7 +292,7 @@ layer {
   top: "conv8"
   param {                                                                                           
      lr_mult: 10                                                                                      
-     decay_mult: 1
+     decay_mult: 250
   }                                                                                                                                                                                                                  
   convolution_param {
     num_output: 256
@@ -344,7 +324,7 @@ layer {
   top: "ip1"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
   inner_product_param {
     num_output: 1024
@@ -361,7 +341,7 @@ layer {
   top: "ip2-1"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
   inner_product_param {
     num_output: 1
@@ -379,7 +359,7 @@ layer {
   top: "ip2-2"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
   inner_product_param {
     num_output: 1
@@ -397,7 +377,7 @@ layer {
   top: "ip2-3"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -416,7 +396,7 @@ layer {
   top: "ip2-4"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -435,7 +415,7 @@ layer {
   top: "ip2-5"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -454,7 +434,7 @@ layer {
   top: "ip2-6"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
   inner_product_param {
     num_output: 1
@@ -472,7 +452,7 @@ layer {
   top: "ip2-7"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
   inner_product_param {
     num_output: 1
@@ -490,7 +470,7 @@ layer {
   top: "ip2-8"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -509,7 +489,7 @@ layer {
   top: "ip2-9"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
   inner_product_param {
     num_output: 1
@@ -527,7 +507,7 @@ layer {
   top: "ip2-10"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
   inner_product_param {
     num_output: 1
@@ -545,7 +525,7 @@ layer {
   top: "ip2-11"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
   inner_product_param {
     num_output: 1
@@ -563,7 +543,7 @@ layer {
   top: "ip2-12"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -582,7 +562,7 @@ layer {
   top: "ip2-13"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -601,7 +581,7 @@ layer {
   top: "ip2-14"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
   inner_product_param {
     num_output: 1
@@ -619,7 +599,7 @@ layer {
   top: "ip2-15"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -638,7 +618,7 @@ layer {
   top: "ip2-16"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -657,7 +637,7 @@ layer {
   top: "ip2-17"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -676,7 +656,7 @@ layer {
   top: "ip2-18"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -695,7 +675,7 @@ layer {
   top: "ip2-19"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
   inner_product_param {
     num_output: 1
@@ -713,7 +693,7 @@ layer {
   top: "ip2-20"
   param {
     lr_mult: 0.1
-    decay_mult: 1
+    decay_mult: 250
   }
 
   inner_product_param {
@@ -725,86 +705,4 @@ layer {
   }
 }
 
-layer {
-  name: "loss"
-  type: "YoloPretrainedLoss"
-  bottom: "labels"
-  bottom: "ip2-1"
-  bottom: "ip2-2"
-  bottom: "ip2-3"
-  bottom: "ip2-4"
-  bottom: "ip2-5"
-  bottom: "ip2-6"
-  bottom: "ip2-7"
-  bottom: "ip2-8"
-  bottom: "ip2-9"
-  bottom: "ip2-10"
-  bottom: "ip2-11"
-  bottom: "ip2-12"
-  bottom: "ip2-13"
-  bottom: "ip2-14"
-  bottom: "ip2-15"
-  bottom: "ip2-16"
-  bottom: "ip2-17"
-  bottom: "ip2-18"
-  bottom: "ip2-19"
-  bottom: "ip2-20"
-  top: "loss"
-  propagate_down:false
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  propagate_down:true
-  include {
-    phase: TRAIN
-  }
-  loss_weight: 1.0
-}
-layer {
-  name: "accuray"  
-  type: "YoloPreTrainAccuracy"
-  bottom: "labels"
-  bottom: "ip2-1"
-  bottom: "ip2-2"
-  bottom: "ip2-3"
-  bottom: "ip2-4"
-  bottom: "ip2-5"
-  bottom: "ip2-6"
-  bottom: "ip2-7"
-  bottom: "ip2-8"
-  bottom: "ip2-9"
-  bottom: "ip2-10"
-  bottom: "ip2-11"
-  bottom: "ip2-12"
-  bottom: "ip2-13"
-  bottom: "ip2-14"
-  bottom: "ip2-15"
-  bottom: "ip2-16"
-  bottom: "ip2-17"
-  bottom: "ip2-18"
-  bottom: "ip2-19"
-  bottom: "ip2-20"
-  top: "accuracy"
-  include {
-    phase: TEST
-  }
-  yolo_pretrain_accuracy_param {
-    error: 0.5
-  }
-}
+

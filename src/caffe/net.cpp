@@ -759,7 +759,7 @@ void Net<Dtype>::CopyTrainedLayersFrom(const NetParameter& param) {
         }
     }
     if (target_layer_ids.empty()) {
-      LOG(FATAL) << "Ignoring source layer " << source_layer_name;
+      LOG(WARNING) << "Ignoring source layer " << source_layer_name;
       continue;
     }
     for (int i = 0; i < target_layer_ids.size(); i++) {

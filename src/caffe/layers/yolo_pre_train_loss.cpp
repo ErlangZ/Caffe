@@ -72,8 +72,8 @@ void YoloPretrainedLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& to
             //LOG(INFO) << "Bottom layer Backward:" << i << " skiped.";
             continue; 
         }
-        const Dtype* input_data = bottom[i]->cpu_data(); // the (i-1)th channel with num values. 
         const int c = i - 1;
+        const Dtype* input_data = bottom[i]->cpu_data(); // the (i-1)th channel with num values. 
         for (int n = 0; n < target_layer->num(); n++) {
             const Dtype& y = target_data[n * target_layer->num() + c];
             const Dtype& h = sigmoid(input_data[n]);
