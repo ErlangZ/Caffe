@@ -40,7 +40,7 @@ void YoloPreTrainAccuracyLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& botto
 template <typename Dtype>
 void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                                                    const vector<Blob<Dtype>*>& top) {
-  vector<int> right(channels_, 0);
+  vector<int> right(channels_ + 1, 0);
   Dtype all(0.0);
 
   const Dtype* label_data = bottom[0]->cpu_data();
@@ -63,12 +63,12 @@ void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
       label_data += bottom[0]->count(1);
   }
   
-  //std::cout << "all:" << all ;
+  std::cout << "all:" << all ;
   for (int c = 0; c < right.size(); c++) {
     top[0]->mutable_cpu_data()[c] = right[c]/all;
-  //  std::cout << " "<< right[c];
+    std::cout << " "<< right[c];
   }
-  //std::cout << std::endl;
+  std::cout << std::endl;
   // Accuracy layer should not be used as a loss function.
 }
 

@@ -46,13 +46,13 @@ void YoloPretrainedLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bot
     const Dtype* target_data = target_layer->cpu_data();
     for (int i = 1; i < bottom.size(); i++)  {
         const Dtype* input_data = bottom[i]->cpu_data();
-        for (int c = 0; c < target_layer->channels(); c++) {
-            const Dtype& y = target_data[c];
-            const Dtype& x = input_data[c];
+        const int c = i - 1;
+        for (int n = 0; n < target_layer->num(); n++) {
+            const Dtype& y = target_data[n * target_layer->num() + c];
+            const Dtype& x = input_data[n];
             loss -= x * (y - (x>=0)) - log(1 + exp(x - 2 * x * (x>=0)));
             //std::cout << "Channel:" << c << " loss:" << loss << " target_data:" << y << " input_data: "<< x << std::endl;
         }
-        target_data += target_layer->count(1);
     }
     loss /= target_layer->count();
     top[0]->mutable_cpu_data()[0] = loss;
@@ -68,7 +68,10 @@ void YoloPretrainedLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& to
     Blob<Dtype>* target_layer = bottom[0];
     const Dtype* target_data = target_layer->cpu_data();
     for (int i = 0; i < bottom.size(); i++)  {
-        if (!propagate_down[i]) continue; 
+        if (!propagate_down[i]) { 
+            //LOG(INFO) << "Bottom layer Backward:" << i << " skiped.";
+            continue; 
+        }
         const Dtype* input_data = bottom[i]->cpu_data(); // the (i-1)th channel with num values. 
         const int c = i - 1;
         for (int n = 0; n < target_layer->num(); n++) {
@@ -77,7 +80,6 @@ void YoloPretrainedLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& to
             bottom[i]->mutable_cpu_diff()[n] = h - y;
             //std::cout << "Channel:" << c << " diff:" << h - y << " target_data:" << y << " input_data: "<< h << std::endl;
         }
-        target_data += target_layer->count(1);
     }
 }
 
