@@ -24,7 +24,7 @@ template <typename Dtype>
 void YoloPreTrainAccuracyLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom, 
                                                const vector<Blob<Dtype>*>& top) {
   vector<int> top_shape(4, 1); 
-  top_shape[0] = bottom[0]->channels() + 1;
+  top_shape[0] = 2 * bottom[0]->channels() + 1;
   top[0]->Reshape(top_shape);
   //Top[0] is the all rightness.
   //Top[1...channels] are the rightness of each class.
@@ -40,32 +40,41 @@ void YoloPreTrainAccuracyLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& botto
 template <typename Dtype>
 void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                                                    const vector<Blob<Dtype>*>& top) {
-  vector<int> right(channels_ + 1, 0);
-  Dtype all(0.0);
+  vector<int> right(2 * channels_ + 1, 0);
+  vector<int> all(2 * channels_ + 1, 0);
 
   const Dtype* label_data = bottom[0]->cpu_data();
 
   for(int n = 0; n < bottom[0]->num(); n++) {
-      int right_count = 0;
+      bool hit = true;
       for (int c = 1; c <= channels_; c++) {
         const Dtype* input_data = bottom[c]->cpu_data();
         const Dtype h = sigmoid(input_data[n]);
         //std::cout << "n:" << n << " c:" << c << " h:" << h << "label:" << label_data[c-1] << std::endl;
-        if (h > error_ && label_data[c-1] > 1e-6) {
-            right_count ++;
-        } else if (h <= error_ && label_data[c-1] <= 1e-6) {
-            right_count ++;
-        } 
+        if (label_data[c-1] > 1e-6) {
+            all[2 * c - 1] ++;
+            if (h > error_) {
+                right[2 * c - 1] ++;
+            } else {
+                hit = false;
+            }
+        } else {
+            all[2 * c] ++;
+            if (h <= error_) {
+                right[2 * c] ++;
+            } else {
+               hit = false;
+            }
+        }
       }
-      right[right_count] ++;
-      all += 1.0;
-
+      if (hit) right[0] ++;
+      all[0] += 1.0;
       label_data += bottom[0]->count(1);
   }
   
 //  std::cout << "all:" << all ;
   for (int c = 0; c < right.size(); c++) {
-    top[0]->mutable_cpu_data()[c] = right[c]/all;
+    top[0]->mutable_cpu_data()[c] = (1 + right[c])/float(1.0 + all[c]);
 //    std::cout << " "<< right[c];
   }
 //  std::cout << std::endl;

@@ -35,7 +35,7 @@ Types = dict([(Names[name], name) for name in Names])
 import sys
 sys.path.append('/home/erlangz/Caffe/build/install/python/')
 net_def_prototxt = '/home/erlangz/Caffe/models/Pascal/yolo_deploy.prototxt'
-trained_net_caffemodel = '/home/erlangz/Caffe/models/Pascal/caffe_yolo_train_iter_34.caffemodel'
+trained_net_caffemodel = '/home/erlangz/Caffe/models/Pascal/caffe_yolo_train_iter_152.caffemodel'
 images_dir = '/home/erlangz/darknet/Data/VOCdevkit/VOCdevkit/VOC2012/JPEGImages/'
 
 import caffe
@@ -51,7 +51,7 @@ transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
 transformer.set_transpose('data', (2,0,1)) # height*width*channel -> channel*height*width
 #mean_file = np.array([104,117,123]) 
 #transformer.set_mean('data', mean_file) #### subtract mean ####
-transformer.set_raw_scale('data', 1.0) # pixel value range
+transformer.set_raw_scale('data', 255.0) # pixel value range
 transformer.set_channel_swap('data', (2,1,0)) # RGB -> BGR
 
 # set test batchsize
@@ -75,6 +75,6 @@ if __name__ == "__main__":
         out = net.forward()
         print f, 
         result = [(sigmoid(float(out[k])), out[k], Types[int(k.split("-")[1])-1], ) for k in out]
-        result = sorted(result)    
-        print result[0]
+        result = sorted(result, reverse=True)    
+        print [i for i in result if i[0] >= 0.5]
 

@@ -378,7 +378,7 @@ layer {
   bottom: "ip1"
   top: "ip2-2"
   param {
-    lr_mult: 0.1
+    lr_mult: 0.01
     decay_mult: 1
   }
   inner_product_param {
@@ -771,9 +771,7 @@ layer {
   propagate_down:true
   propagate_down:true
   propagate_down:true
-  include {
-    phase: TRAIN
-  }
+
   loss_weight: 1.0
 }
 layer {
