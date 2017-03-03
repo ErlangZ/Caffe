@@ -1,0 +1,951 @@
+name: "tiny-yolo"
+layer {
+  name: "pascal"
+  type: "Data"
+  top: "data"
+  top: "labels"
+  include {
+    phase: TRAIN
+  }
+  data_param {
+    source: "pascal_train_lmdb"
+    batch_size: 1
+    labels_number: 20
+    backend: LMDB
+  }
+  transform_param {
+    scale: 0.0039215684
+  }
+}
+layer {
+  name: "pascal"
+  type: "Data"
+  top: "data"
+  top: "labels"
+  include {
+    phase: TEST
+  }
+  data_param {
+    source: "pascal_val_lmdb"
+    batch_size: 1
+    labels_number: 20
+    backend: LMDB
+  }
+  transform_param {
+    scale: 0.0039215684
+  }
+}
+layer {
+    name: "labels-slice"
+    type: "Slice"
+    bottom: "labels"
+    top: "label1"
+    top: "label2"
+    top: "label3"
+    top: "label4"
+    top: "label5"
+    top: "label6"
+    top: "label7"
+    top: "label8"
+    top: "label9"
+    top: "label10"
+    top: "label11"
+    top: "label12"
+    top: "label13"
+    top: "label14"
+    top: "label15"
+    top: "label16"
+    top: "label17"
+    top: "label18"
+    top: "label19"
+    top: "label20"
+    slice_param {
+       axis: 1  
+       slice_point: 1     
+       slice_point: 2    
+       slice_point: 3    
+       slice_point: 4    
+       slice_point: 5    
+       slice_point: 6    
+       slice_point: 7    
+       slice_point: 8    
+       slice_point: 9    
+       slice_point: 10    
+       slice_point: 11    
+       slice_point: 12    
+       slice_point: 13    
+       slice_point: 14    
+       slice_point: 15    
+       slice_point: 16    
+       slice_point: 17    
+       slice_point: 18    
+       slice_point: 19    
+    }
+}
+layer {
+  name: "conv1"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1"
+  param {                                                                                           
+     lr_mult: 1                                                                                      
+     decay_mult: 1
+  }                                                                                                                                                                                                                  
+  convolution_param {
+    num_output: 16
+    kernel_size: 3
+    pad: 1
+    weight_filler {                                                                                 
+        type: "xavier"                                                                                
+    }                                                                                               
+    bias_term :false 
+  }
+}
+layer {
+  name: "relu1"
+  type: "ReLU"
+  bottom: "conv1"
+  top: "conv1"
+  relu_param {
+    negative_slope: 0.1
+  }
+}
+layer {
+  name: "pool1"
+  type: "Pooling"
+  bottom: "conv1"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "conv2"
+  type: "Convolution"
+  bottom: "pool1"
+  top: "conv2"
+  param {                                                                                           
+     lr_mult: 1                                                                                      
+     decay_mult: 1
+  }                                                                                                                                                                                                                  
+  convolution_param {
+    num_output: 32
+    kernel_size: 3
+    pad: 1
+    weight_filler {                                                                                 
+        type: "xavier"                                                                                
+    }                                                                                               
+    bias_term: false   
+  }
+}
+layer {
+  name: "relu2"
+  type: "ReLU"
+  bottom: "conv2"
+  top: "conv2"
+  relu_param {
+    negative_slope: 0.1
+  }
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv2"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "conv3"
+  type: "Convolution"
+  bottom: "pool2"
+  top: "conv3"
+  param {                                                                                           
+     lr_mult: 1                                                                                      
+     decay_mult: 1
+  }                                                                                                                                                                                                                  
+  convolution_param {
+    num_output: 64
+    kernel_size: 3
+    pad: 1
+    weight_filler {                                                                                 
+        type: "xavier"                                                                                
+    }                                                                                               
+    bias_term : false
+  }
+}
+
+layer {
+  name: "relu3"
+  type: "ReLU"
+  bottom: "conv3"
+  top: "conv3"
+  relu_param {
+    negative_slope: 0.1
+  }
+}
+layer {
+  name: "pool3"
+  type: "Pooling"
+  bottom: "conv3"
+  top: "pool3"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "conv4"
+  type: "Convolution"
+  bottom: "pool3"
+  top: "conv4"
+  param {                                                                                           
+     lr_mult: 1                                                                                      
+     decay_mult: 1
+  }                                                                                                                                                                                                                  
+  convolution_param {
+    num_output: 128
+    kernel_size: 3
+    pad: 1
+    weight_filler {                                                                                 
+        type: "xavier"                                                                                
+    }                                                                                               
+    bias_term : false
+  }
+}
+
+layer {
+  name: "relu4"
+  type: "ReLU"
+  bottom: "conv4"
+  top: "conv4"
+  relu_param {
+    negative_slope: 0.1
+  }
+}
+layer {
+  name: "pool4"
+  type: "Pooling"
+  bottom: "conv4"
+  top: "pool4"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "conv5"
+  type: "Convolution"
+  bottom: "pool4"
+  top: "conv5"
+  param {                                                                                           
+     lr_mult: 1                                                                                      
+     decay_mult: 1
+  }                                                                                                                                                                                                                  
+  convolution_param {
+    num_output: 256
+    kernel_size: 3
+    pad: 1
+    weight_filler {                                                                                 
+        type: "xavier"                                                                                
+    }                                                                                               
+    bias_term: false
+  }
+}
+
+layer {
+  name: "relu5"
+  type: "ReLU"
+  bottom: "conv5"
+  top: "conv5"
+  relu_param {
+    negative_slope: 0.1
+  }
+}
+layer {
+  name: "pool5"
+  type: "Pooling"
+  bottom: "conv5"
+  top: "pool5"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "conv6"
+  type: "Convolution"
+  bottom: "pool5"
+  top: "conv6"
+  param {                                                                                           
+     lr_mult: 1                                                                                      
+     decay_mult: 1
+  }                                                                                                                                                                                                                  
+  convolution_param {
+    num_output: 512
+    kernel_size: 3
+    pad: 1
+    weight_filler {                                                                                 
+        type: "xavier"                                                                                
+    }                                                                                               
+    bias_term: false 
+  }
+}
+
+layer {
+  name: "relu6"
+  type: "ReLU"
+  bottom: "conv6"
+  top: "conv6"
+  relu_param {
+    negative_slope: 0.1
+  }
+}
+layer {
+  name: "pool6"
+  type: "Pooling"
+  bottom: "conv6"
+  top: "pool6"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "conv7"
+  type: "Convolution"
+  bottom: "pool6"
+  top: "conv7"
+  param {                                                                                           
+     lr_mult: 1                                                                                      
+     decay_mult: 1
+  }                                                                                                                                                                                                                  
+  convolution_param {
+    num_output: 1024
+    kernel_size: 3
+    pad: 1
+    weight_filler {                                                                                 
+        type: "xavier"                                                                                
+    }                                                                                               
+    bias_term: false
+  }
+}
+
+layer {
+  name: "relu7"
+  type: "ReLU"
+  bottom: "conv7"
+  top: "conv7"
+  relu_param {
+    negative_slope: 0.1
+  }
+}
+
+layer {
+  name: "conv8"
+  type: "Convolution"
+  bottom: "conv7"
+  top: "conv8"
+  param {                                                                                           
+     lr_mult: 1                                                                                      
+     decay_mult: 1
+  }                                                                                                                                                                                                                  
+  convolution_param {
+    num_output: 256
+    kernel_size: 3
+    pad: 1
+    weight_filler {                                                                                 
+        type: "xavier"                                                                                
+    }                                                                                               
+    bias_term: false    
+  }
+}
+
+layer {
+  name: "relu8"
+  type: "ReLU"
+  bottom: "conv8"
+  top: "conv8"
+  relu_param {
+    negative_slope: 0.1
+  }
+}
+
+
+
+layer {
+  name: "ip1"
+  type: "InnerProduct"
+  bottom: "conv8"
+  top: "ip1"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 1024
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "ip2-1"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-1"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss1" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-1"
+  bottom: "label1"
+  top: "loss1"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-2"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-2"
+  param {
+    lr_mult: 0.01
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss2" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-2"
+  bottom: "label2"
+  top: "loss2"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-3"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-3"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss3" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-3"
+  bottom: "label3"
+  top: "loss3"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-4"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-4"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss4" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-4"
+  bottom: "label4"
+  top: "loss4"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-5"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-5"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss5" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-5"
+  bottom: "label5"
+  top: "loss5"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-6"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-6"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss6" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-6"
+  bottom: "label6"
+  top: "loss6"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-7"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-7"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss7" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-7"
+  bottom: "label7"
+  top: "loss7"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-8"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-8"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss8" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-8"
+  bottom: "label8"
+  top: "loss8"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-9"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-9"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss9" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-9"
+  bottom: "label9"
+  top: "loss9"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-10"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-10"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss10" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-10"
+  bottom: "label10"
+  top: "loss10"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-11"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-11"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss11" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-11"
+  bottom: "label11"
+  top: "loss11"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-12"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-12"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss12" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-12"
+  bottom: "label12"
+  top: "loss12"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-13"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-13"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss13" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-13"
+  bottom: "label13"
+  top: "loss13"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-14"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-14"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss14" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-14"
+  bottom: "label14"
+  top: "loss14"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-15"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-15"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss15" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-15"
+  bottom: "label15"
+  top: "loss15"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-16"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-16"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss16" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-16"
+  bottom: "label16"
+  top: "loss16"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-17"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-17"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss17" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-17"
+  bottom: "label17"
+  top: "loss17"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-18"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-18"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss18" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-18"
+  bottom: "label18"
+  top: "loss18"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-19"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-19"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss19" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-19"
+  bottom: "label19"
+  top: "loss19"
+  loss_weight: 1.0
+}
+layer {
+  name: "ip2-20"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2-20"
+  param {
+    lr_mult: 0.1
+    decay_mult: 1
+  }
+
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_term: false    
+  }
+}
+layer {
+  name: "loss20" 
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "ip2-20"
+  bottom: "label20"
+  top: "loss20"
+  loss_weight: 1.0
+}
+
+layer {
+  name: "accuray"  
+  type: "YoloPreTrainAccuracy"
+  bottom: "labels"
+  bottom: "ip2-1"
+  bottom: "ip2-2"
+  bottom: "ip2-3"
+  bottom: "ip2-4"
+  bottom: "ip2-5"
+  bottom: "ip2-6"
+  bottom: "ip2-7"
+  bottom: "ip2-8"
+  bottom: "ip2-9"
+  bottom: "ip2-10"
+  bottom: "ip2-11"
+  bottom: "ip2-12"
+  bottom: "ip2-13"
+  bottom: "ip2-14"
+  bottom: "ip2-15"
+  bottom: "ip2-16"
+  bottom: "ip2-17"
+  bottom: "ip2-18"
+  bottom: "ip2-19"
+  bottom: "ip2-20"
+  top: "accuracy"
+  include {
+    phase: TEST
+  }
+  yolo_pretrain_accuracy_param {
+    error: 0.5
+  }
+}
