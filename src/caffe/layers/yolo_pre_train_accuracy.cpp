@@ -68,7 +68,7 @@ void YoloPreTrainAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& b
         }
       }
       if (hit) right[0] ++;
-      all[0] += 1.0;
+      all[0] ++;
       label_data += bottom[0]->count(1);
   }
   

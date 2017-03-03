@@ -20,12 +20,16 @@ void YoloPretrainedLossLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bott
   if (this->layer_param_.loss_weight_size() == 0) {
     this->layer_param_.add_loss_weight(Dtype(1));
   }
+  for (int i = 0; i < this->layer_param_.yolo_loss_param().weights_size(); i++) {
+    weights_.push_back(this->layer_param_.yolo_loss_param().weights(i));
+  }
 }
 
 template<typename Dtype>
 void YoloPretrainedLossLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
                                              const vector<Blob<Dtype>*>& top) {
     Blob<Dtype>* target_layer = bottom[0];
+    CHECK_EQ(target_layer->channels(), this->layer_param_.yolo_loss_param().weights_size());
     CHECK_EQ(bottom.size(), target_layer->channels() + 1) 
         << "YoloPretrainedLossLayer's Input Label's Channel must be equal to Output Channels";
     for (int i = 0; i < bottom.size(); i++) {
@@ -67,17 +71,17 @@ void YoloPretrainedLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& to
     // bottom [1 ... c+1) are input
     Blob<Dtype>* target_layer = bottom[0];
     const Dtype* target_data = target_layer->cpu_data();
-    for (int i = 0; i < bottom.size(); i++)  {
+    for (int i = 0; i < bottom.size(); i++)  { // bottom.size() == 20
         if (!propagate_down[i]) { 
             //LOG(INFO) << "Bottom layer Backward:" << i << " skiped.";
             continue; 
         }
         const int c = i - 1;
         const Dtype* input_data = bottom[i]->cpu_data(); // the (i-1)th channel with num values. 
-        for (int n = 0; n < target_layer->num(); n++) {
+        for (int n = 0; n < target_layer->num(); n++) { // target_layer->num() == 16
             const Dtype& y = target_data[n * target_layer->num() + c];
             const Dtype& h = sigmoid(input_data[n]);
-            bottom[i]->mutable_cpu_diff()[n] = (h - y);
+            bottom[i]->mutable_cpu_diff()[n] = weights_[i] * (h - y) / target_layer->num();
             //std::cout << "Channel:" << c << " diff:" << h - y << " target_data:" << y << " input_data: "<< h << std::endl;
         }
     }
