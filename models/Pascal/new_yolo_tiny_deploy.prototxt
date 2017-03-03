@@ -453,7 +453,7 @@ layer {
   bottom: "ip2-2"
   bottom: "label2"
   top: "loss2"
-  loss_weight: 1.0
+  loss_weight: 0.1
 }
 layer {
   name: "ip2-3"
