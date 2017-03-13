@@ -28,6 +28,14 @@ message BlobProtoVector {
   repeated BlobProto blobs = 1;
 }
 
+message YoloLabel {
+  required int32 label = 1;  
+  required int32 x_min = 2;
+  required int32 y_min = 3;
+  required int32 x_max = 4;
+  required int32 y_max = 5;
+}
+
 message Datum {
   optional int32 channels = 1;
   optional int32 height = 2;
@@ -41,8 +49,12 @@ message Datum {
   repeated int32 multi_labels = 8; 
   // If true data contains an encoded image that need to be decoded
   optional bool encoded = 7 [default = false];
+  repeated YoloLabel yolo_labels = 9;
 }
 
+message YoloDataPrameter {
+  optional int32 max_labels_number = 1 [default = 4];
+}
 
 message FillerParameter {
   // The filler type.
@@ -372,6 +384,7 @@ message LayerParameter {
   optional CropParameter crop_param = 144;
   optional DataParameter data_param = 107;
   optional DropoutParameter dropout_param = 108;
+  optional YoloDataPrameter yolo_data_param = 1002;
   optional DummyDataParameter dummy_data_param = 109;
   optional EltwiseParameter eltwise_param = 110;
   optional ELUParameter elu_param = 140;
