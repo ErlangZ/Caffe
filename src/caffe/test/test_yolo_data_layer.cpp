@@ -69,4 +69,35 @@ TYPED_TEST(YoloDataLayerTest, TestReshape) {
    delete top[1];
 }
 
+TYPED_TEST(YoloDataLayerTest, TestBatchLoad) {
+   typedef typename TypeParam::Dtype Dtype;
+   LayerParameter layer_param;
+   layer_param.mutable_data_param()->set_batch_size(2); 
+   std::string db_file(CMAKE_SOURCE_DIR "/caffe/test/test_data/yolo_train_lmdb");
+
+   layer_param.mutable_data_param()->set_source(db_file);
+   layer_param.mutable_data_param()->set_backend(DataParameter::LMDB);
+   layer_param.mutable_yolo_data_param()->set_max_labels_number(10); //10 * 5 + 1
+   YoloDataLayer<Dtype> yolo_data_layer(layer_param);
+   
+   vector<Blob<Dtype>*> bottom;
+   vector<Blob<Dtype>*> top(2, NULL);
+   top[0] = new Blob<Dtype>();
+   top[1] = new Blob<Dtype>();
+   yolo_data_layer.LayerSetUp(bottom, top);
+   yolo_data_layer.Forward(bottom, top);
+
+   EXPECT_EQ(2, top[0]->num()); 
+   EXPECT_EQ(3, top[0]->channels()); 
+   EXPECT_EQ(448, top[0]->height()); 
+   EXPECT_EQ(448, top[0]->width()); 
+   
+   EXPECT_EQ(2, top[1]->num());
+   EXPECT_EQ(51, top[1]->channels()); 
+   EXPECT_EQ(1, top[1]->height()); 
+   EXPECT_EQ(1, top[1]->width()); 
+
+   delete top[0];
+   delete top[1];
+}
 }

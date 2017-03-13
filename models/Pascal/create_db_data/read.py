@@ -16,7 +16,7 @@ import caffe
 import cv2
 import numpy as np
 
-env = lmdb.open('/home/erlangz/Caffe/models/Pascal/create_db_data/pascal_train_lmdb', readonly=True)
+env = lmdb.open('/home/erlangz/Caffe/src/caffe/test/test_data/yolo_train_lmdb', readonly=True)
 with env.begin() as contxt:
     for k, v in contxt.cursor():
         datum = caffe.proto.caffe_pb2.Datum()

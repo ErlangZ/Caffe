@@ -92,15 +92,15 @@ void YoloDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     read_time += timer.MicroSeconds();
     timer.Start();
     // Apply data transformations (mirror, scale, crop...)
-    int offset = batch->data_.offset(item_id);
-    this->transformed_data_.set_cpu_data(top_data + offset);
+    int data_offset = batch->data_.offset(item_id);
+    int label_offset = batch->label_.offset(item_id); 
+    this->transformed_data_.set_cpu_data(top_data + data_offset);
     this->data_transformer_->Transform(datum, &(this->transformed_data_));
     // Copy label.
     if (this->output_labels_) {
-        init_yolo_label(top_label + offset, datum); 
+        init_yolo_label(top_label + label_offset, datum); 
     }
     trans_time += timer.MicroSeconds();
-
     reader_.free().push(const_cast<Datum*>(&datum));
   }
   timer.Stop();
@@ -114,20 +114,19 @@ void YoloDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
 template<typename Dtype>
 void YoloDataLayer<Dtype>::init_yolo_label(Dtype* label, const Datum& datum) {
     label[0] = datum.yolo_labels_size();
-    label = label + 1;
     for (int i = 0; i < datum.yolo_labels_size(); i++) {
-        label[i * 5 + 0] = datum.yolo_labels(i).label(); 
-        const uint32_t x_min = datum.yolo_labels(i).x_min();
-        const uint32_t y_min = datum.yolo_labels(i).y_min();
-        const uint32_t x_max = datum.yolo_labels(i).x_max();
-        const uint32_t y_max = datum.yolo_labels(i).y_max();
-        const uint32_t height = y_max - y_min;
-        const uint32_t width = x_max - x_min;
+        label[i * 5 + 1] = datum.yolo_labels(i).label(); 
+        const Dtype x_min = datum.yolo_labels(i).x_min();
+        const Dtype y_min = datum.yolo_labels(i).y_min();
+        const Dtype x_max = datum.yolo_labels(i).x_max();
+        const Dtype y_max = datum.yolo_labels(i).y_max();
+        const Dtype height = y_max - y_min;
+        const Dtype width = x_max - x_min;
 
-        label[i * 5 + 1] = (x_min + x_max) / (2 * width);  //center_x
-        label[i * 5 + 2] = (y_min + y_max) / (2 * height); //center_y
-        label[i * 5 + 3] = width;                          //width
-        label[i * 5 + 4] = height;                         //height
+        label[i * 5 + 2] = (x_min + x_max) / (2 * width);  //center_x
+        label[i * 5 + 3] = (y_min + y_max) / (2 * height); //center_y
+        label[i * 5 + 4] = width;                          //width
+        label[i * 5 + 5] = height;                         //height
     }
 }
 
