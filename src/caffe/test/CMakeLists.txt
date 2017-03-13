@@ -2,6 +2,7 @@
 # Usage example:
 #  cmake -DBUILD_only_tests="common,net,blob,im2col_kernel"
 set(BUILD_only_tests "" CACHE STRING "Blank or comma-separated list of test files to build without 'test_' prefix and extension")
+add_definitions(-Dprotected=public -Dprivate=public)
 caffe_leave_only_selected_tests(test_srcs ${BUILD_only_tests})
 caffe_leave_only_selected_tests(test_cuda ${BUILD_only_tests})
 

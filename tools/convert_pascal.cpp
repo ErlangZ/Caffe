@@ -37,7 +37,9 @@ DEFINE_string(backend, "lmdb",
         "The backend {lmdb, leveldb} for storing the result");
 DEFINE_int32(resize_width, 0, "Width images are resized to");
 DEFINE_int32(resize_height, 0, "Height images are resized to");
-DEFINE_int32(labels_number, 20, "the number of labels");
+DEFINE_int32(max_labels_number, 10, "the number of labels");
+DEFINE_int32(max_count, INT_MAX, "the max number of images");
+DEFINE_string(image_dir, "/home/erlangz/darknet/Data/VOCdevkit/VOCdevkit/VOC2012/JPEGImages/", "default data");
 DEFINE_bool(check_size, false,
     "When this option is on, check that all the datum have the same size");
 DEFINE_bool(encoded, false,
@@ -54,7 +56,6 @@ int main(int argc, char** argv) {
 #ifndef GFLAGS_GFLAGS_H_
   namespace gflags = google;
 #endif
-
   gflags::SetUsageMessage("Convert a set of images to the leveldb/lmdb\n"
         "format used as input for Caffe.\n"
         "Usage:\n"
@@ -72,24 +73,62 @@ int main(int argc, char** argv) {
   const bool check_size = FLAGS_check_size;
   const bool encoded = FLAGS_encoded;
   const string encode_type = FLAGS_encode_type;
+  std::map<std::string, int> Types;
+
+  Types["aeroplane"] = 0;
+  Types["person"] = 1;
+  Types["bicycle"] = 2;
+  Types["boat"] = 3;                                                                                 
+  Types["bird"] = 4;                                                                                 
+  Types["bottle"] = 5;  
+  Types["bus"] = 6;                                                                                  
+  Types["car"] = 7;                                                                                  
+  Types["cat"] = 8;                                                                                  
+  Types["chair"] = 9;                                                                                
+  Types["cow"] = 10;                                                                                 
+  Types["diningtable"] = 11;                                                                         
+  Types["dog"] = 12;                                                                                 
+  Types["horse"] = 13;                                                                               
+  Types["motorbike"] = 14;                                                                           
+  Types["pottedplant"] = 15;                                                                         
+  Types["sheep"] = 16;                                                                               
+  Types["sofa"] = 17;                                                                                
+  Types["train"] = 18;                                                                               
+  Types["tvmonitor"] = 19; 
 
   std::ifstream infile(argv[2]);
-  std::vector<std::pair<std::string, std::vector<int> > > lines;
+  std::string dir = FLAGS_image_dir; 
+  std::vector<std::pair<std::string, std::vector<float> > > lines;
   std::string line;
 
   // Multi-Labels filename\t
-  const int labels_number = FLAGS_labels_number;
+  const int max_labels_number = FLAGS_max_labels_number;
   while (std::getline(infile, line)) {
-      std::vector<int> labels(labels_number, 0);
       std::string file_name;
+      uint32_t labels_number = 0;
       std::stringstream ss;
       ss << line;
       ss >> file_name;
+      ss >> labels_number; 
+
+      if (labels_number >= max_labels_number) {
+         LOG(INFO) << "file:" << file_name << " marked too much regions. number:" << labels_number << " skip";
+         continue;
+      }
+      std::vector<float> data(5 * labels_number + 1, 0.0);
+
+      data[0] = static_cast<float>(labels_number) + 0.1;
+      string name; 
       for (int i = 0; i < labels_number; i++) {
-          ss >> labels[i]; 
+          ss >> name;
+          data[i * 5 + 1] = Types[name];
+          ss >> data[i * 5 + 2];
+          ss >> data[i * 5 + 3];
+          ss >> data[i * 5 + 4];
+          ss >> data[i * 5 + 5];
       }
       
-      lines.push_back(std::make_pair(file_name, labels));
+      lines.push_back(std::make_pair(dir + file_name, data));
   }
   if (FLAGS_shuffle) {
     // randomly shuffle data
@@ -129,7 +168,8 @@ int main(int argc, char** argv) {
     }
     Datum datum;
     status = ReadImageToDatum(lines[line_id].first,
-        lines[line_id].second, resize_height, resize_width, is_color,
+        static_cast<uint32_t>(lines[line_id].second[0]),
+        std::vector<float>(lines[line_id].second.begin()+1, lines[line_id].second.end()), resize_height, resize_width, is_color,
         enc, &datum);
     if (status == false) continue;
     if (check_size) {
@@ -150,6 +190,10 @@ int main(int argc, char** argv) {
     CHECK(datum.SerializeToString(&out));
     txn->Put(key_str, out);
 
+    if (count > FLAGS_max_count) {
+        LOG(INFO) << "Get Enought Image, return";
+        break;
+    }
     if (++count % 1000 == 0) {
       // Commit db
       txn->Commit();

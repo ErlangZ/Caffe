@@ -142,31 +142,42 @@ bool ReadImageToDatum(const string& filename, const int label,
 }
 
 bool ReadImageToDatum(const string& filename, 
-                              const std::vector<int>& labels,
-                              const int height, 
-                              const int width, 
-                              const bool is_color,
-                              const std::string & encoding, 
-                              Datum* datum) {
+                      const uint32_t label_number, 
+                      const std::vector<float>& labels,
+                      const int height, 
+                      const int width, 
+                      const bool is_color,
+                      const std::string & encoding, 
+                      Datum* datum) {
   cv::Mat cv_img = ReadImageToCVMat(filename, height, width, is_color);
   if (cv_img.data) {
     if (encoding.size()) {
       if ( (cv_img.channels() == 3) == is_color && !height && !width &&
           matchExt(filename, encoding) )
-        return ReadFileToDatum(filename, labels, datum);
+        return ReadFileToDatum(filename, label_number, labels, datum);
       std::vector<uchar> buf;
       cv::imencode("."+encoding, cv_img, buf);
       datum->set_data(std::string(reinterpret_cast<char*>(&buf[0]),
                       buf.size()));
-      for (int i = 0; i < labels.size(); i++) {
-        datum->add_multi_labels(labels[i]);
+      for (int i = 0; i < label_number; i++) {
+          ::caffe::YoloLabel* datum_label = datum->add_yolo_labels();
+          datum_label->set_label(labels[i * 5 + 0]);
+          datum_label->set_x_min(labels[i * 5 + 1]);
+          datum_label->set_x_max(labels[i * 5 + 2]);
+          datum_label->set_y_min(labels[i * 5 + 3]);
+          datum_label->set_y_max(labels[i * 5 + 4]);
       }
       datum->set_encoded(true);
       return true;
     } else {
         CVMatToDatum(cv_img, datum);
-        for (int i = 0; i < labels.size(); i++) {
-          datum->add_multi_labels(labels[i]);
+        for (int i = 0; i < label_number; i++) {
+          ::caffe::YoloLabel* datum_label = datum->add_yolo_labels();
+          datum_label->set_label(labels[i * 5 + 0]);
+          datum_label->set_x_min(labels[i * 5 + 1]);
+          datum_label->set_x_max(labels[i * 5 + 2]);
+          datum_label->set_y_min(labels[i * 5 + 3]);
+          datum_label->set_y_max(labels[i * 5 + 4]);
         }
     }
     return true;
@@ -198,8 +209,10 @@ bool ReadFileToDatum(const string& filename, const int label,
   }
 }
 
-bool ReadFileToDatum(const string& filename, const std::vector<int>& labels,
-    Datum* datum) {
+bool ReadFileToDatum(const string& filename, 
+                     const uint32_t label_number, 
+                     const std::vector<float>& labels,
+                     Datum* datum) {
   std::streampos size;
 
   fstream file(filename.c_str(), ios::in|ios::binary|ios::ate);
@@ -210,8 +223,14 @@ bool ReadFileToDatum(const string& filename, const std::vector<int>& labels,
     file.read(&buffer[0], size);
     file.close();
     datum->set_data(buffer);
-    for (int i = 0; i < labels.size(); i++) {
-        datum->add_multi_labels(labels[i]);
+
+    for (int i = 0; i < label_number; i++) {
+        ::caffe::YoloLabel* datum_label = datum->add_yolo_labels();
+        datum_label->set_label(labels[i * 5 + 0]);
+        datum_label->set_x_min(labels[i * 5 + 1]);
+        datum_label->set_x_max(labels[i * 5 + 2]);
+        datum_label->set_y_min(labels[i * 5 + 3]);
+        datum_label->set_y_max(labels[i * 5 + 4]);
     }
     datum->set_encoded(true);
     return true;

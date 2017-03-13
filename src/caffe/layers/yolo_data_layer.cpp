@@ -52,6 +52,7 @@ void YoloDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
     for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
          this->prefetch_[i].label_.Reshape(label_shape);
     }
+    top[1]->Reshape(label_shape);
   }
 }
 
