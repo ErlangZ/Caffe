@@ -28,6 +28,15 @@ public:
         }
         */
     }
+    YoloBox(const Dtype x_min, const Dtype y_min, const Dtype _width, const Dtype _height) {
+        confidence = 0.0;
+        type = -1;
+        center_x = x_min + (width / 2.0);
+        center_y = y_min + (height / 2.0);
+        width = _width;
+        height = _height;
+    }
+
     Dtype min_x() const {
         return center_x - width / 2.0;
     }
@@ -99,30 +108,70 @@ void build_boxes_from_output(const Dtype* data, std::vector<YoloBox<Dtype> >* ou
     output_box->push_back(YoloBox<Dtype>(data + 5, first_element_is_type));
 }
 
-/*
+template <typename Dtype>
+void fill_the_type(const YoloBox<Dtype>& box, std::vector<int> types) {
+    const Dtype range = 1.0 / S_;
+    for (int i = 0; i < S_; i++) {
+        for (int j = 0; j < S_; j++) {
+            YoloBox<Dtype> grid(i * range, j * range, range, range);
+            if (grid.compute_iou(box) > 0.4) {
+                types[i * S_ + j] = box.type;
+            }
+        }
+    }
+}
+
+template <typename Dtype>
+Dtype square(const Dtype x) {
+    return x * x;
+}
+
 //Bottom has 7 * 7 + 1 layers
 //Top has 1 layer
 template <typename Dtype>
 class YoloLossLayer : public LossLayer<Dtype> {
  public:
-  explicit YoloLossLayer(const LayerParameter& param) : LossLayer<Dtype>(param), diff_() {}
-  virtual void Reshape(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top);
+  explicit YoloLossLayer(const LayerParameter& param) : LossLayer<Dtype>(param) {
+      lambda_coord_ = 5.0;
+      lambda_noobj_ = 0.5;
+      S_ = 7;
+      B_ = 2;
+      class_number_ = 20;
+      count_ = B_ * 5 + class_number_; // (Confidence, Center_x, Center_y, Width, Height) * 2 + 20 Classes
+      volume_ = S_ * S_;
+  }
+
+  virtual void Reshape(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+    diff_.ReshapeLike(*bottom[0])
+    vector<int> loss_shape(0);  // Loss layers output a scalar; 0 axes.
+    top[0]->Reshape(loss_shape);
+  }
+
   virtual inline const char* type() const { return "YoloLoss"; }
   virtual inline bool AllowForceBackward(const int bottom_index) const {
     return true;
   }
  protected:
+  int get_offset(const int i, const int j) const {
+      return (i * S_ + j) * count_;
+  }
+ protected:
   /// @copydoc YoloLossLayer
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top);
-  virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top);
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
                             const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-                            const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
+ protected:
   Blob<Dtype> diff_;
+  Dtype lambda_coord_;
+  Dtype lambda_noobj_;
+  int S_;
+  int B_;
+  int class_number_;
+  int volume_;
+  int count_; 
 };
-*/
+
 }  // namespace caffe
 
 #endif  // CAFFE_EUCLIDEAN_LOSS_LAYER_HPP_
