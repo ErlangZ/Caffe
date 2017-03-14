@@ -122,12 +122,11 @@ int main(int argc, char** argv) {
       for (int i = 0; i < labels_number; i++) {
           ss >> name;
           data[i * 5 + 1] = Types[name];
-          ss >> data[i * 5 + 2];
-          ss >> data[i * 5 + 3];
-          ss >> data[i * 5 + 4];
-          ss >> data[i * 5 + 5];
+          ss >> data[i * 5 + 2]; //center_x
+          ss >> data[i * 5 + 3]; //center_y
+          ss >> data[i * 5 + 4]; //width
+          ss >> data[i * 5 + 5]; //height
       }
-      
       lines.push_back(std::make_pair(dir + file_name, data));
   }
   if (FLAGS_shuffle) {
@@ -190,7 +189,7 @@ int main(int argc, char** argv) {
     CHECK(datum.SerializeToString(&out));
     txn->Put(key_str, out);
 
-    if (count > FLAGS_max_count) {
+    if (count >= FLAGS_max_count) {
         LOG(INFO) << "Get Enought Image, return";
         break;
     }

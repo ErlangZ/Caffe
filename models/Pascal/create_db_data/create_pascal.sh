@@ -41,7 +41,6 @@ GLOG_logtostderr=1 $TOOLS/convert_pascal \
     --resize_height=$RESIZE_HEIGHT \
     --resize_width=$RESIZE_WIDTH \
     --shuffle \
-    --max_count=2 \
     $TRAIN_DATA_ROOT \
     $DATA/train.txt \
     $DATA/pascal_train_lmdb
@@ -52,7 +51,6 @@ GLOG_logtostderr=1 $TOOLS/convert_pascal \
     --resize_height=$RESIZE_HEIGHT \
     --resize_width=$RESIZE_WIDTH \
     --shuffle \
-    --max_count=2 \
     $VAL_DATA_ROOT \
     $DATA/test.txt \
     $DATA/pascal_val_lmdb

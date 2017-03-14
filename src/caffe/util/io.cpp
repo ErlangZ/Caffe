@@ -162,10 +162,10 @@ bool ReadImageToDatum(const string& filename,
       for (int i = 0; i < label_number; i++) {
           ::caffe::YoloLabel* datum_label = datum->add_yolo_labels();
           datum_label->set_label(labels[i * 5 + 0]);
-          datum_label->set_x_min(labels[i * 5 + 1]);
-          datum_label->set_x_max(labels[i * 5 + 2]);
-          datum_label->set_y_min(labels[i * 5 + 3]);
-          datum_label->set_y_max(labels[i * 5 + 4]);
+          datum_label->set_center_x(labels[i * 5 + 1]);
+          datum_label->set_center_y(labels[i * 5 + 2]);
+          datum_label->set_width(labels[i * 5 + 3]);
+          datum_label->set_height(labels[i * 5 + 4]);
       }
       datum->set_encoded(true);
       return true;
@@ -174,10 +174,10 @@ bool ReadImageToDatum(const string& filename,
         for (int i = 0; i < label_number; i++) {
           ::caffe::YoloLabel* datum_label = datum->add_yolo_labels();
           datum_label->set_label(labels[i * 5 + 0]);
-          datum_label->set_x_min(labels[i * 5 + 1]);
-          datum_label->set_x_max(labels[i * 5 + 2]);
-          datum_label->set_y_min(labels[i * 5 + 3]);
-          datum_label->set_y_max(labels[i * 5 + 4]);
+          datum_label->set_center_x(labels[i * 5 + 1]);
+          datum_label->set_center_y(labels[i * 5 + 2]);
+          datum_label->set_width(labels[i * 5 + 3]);
+          datum_label->set_height(labels[i * 5 + 4]);
         }
     }
     return true;
@@ -227,10 +227,10 @@ bool ReadFileToDatum(const string& filename,
     for (int i = 0; i < label_number; i++) {
         ::caffe::YoloLabel* datum_label = datum->add_yolo_labels();
         datum_label->set_label(labels[i * 5 + 0]);
-        datum_label->set_x_min(labels[i * 5 + 1]);
-        datum_label->set_x_max(labels[i * 5 + 2]);
-        datum_label->set_y_min(labels[i * 5 + 3]);
-        datum_label->set_y_max(labels[i * 5 + 4]);
+        datum_label->set_center_x(labels[i * 5 + 1]);
+        datum_label->set_center_y(labels[i * 5 + 2]);
+        datum_label->set_width(labels[i * 5 + 3]);
+        datum_label->set_height(labels[i * 5 + 4]);
     }
     datum->set_encoded(true);
     return true;

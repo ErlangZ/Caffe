@@ -30,10 +30,10 @@ message BlobProtoVector {
 
 message YoloLabel {
   required int32 label = 1;  
-  required int32 x_min = 2;
-  required int32 y_min = 3;
-  required int32 x_max = 4;
-  required int32 y_max = 5;
+  required float center_x = 2;
+  required float center_y = 3;
+  required float width = 4;
+  required float height = 5;
 }
 
 message Datum {

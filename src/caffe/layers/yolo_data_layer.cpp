@@ -116,17 +116,10 @@ void YoloDataLayer<Dtype>::init_yolo_label(Dtype* label, const Datum& datum) {
     label[0] = datum.yolo_labels_size();
     for (int i = 0; i < datum.yolo_labels_size(); i++) {
         label[i * 5 + 1] = datum.yolo_labels(i).label(); 
-        const Dtype x_min = datum.yolo_labels(i).x_min();
-        const Dtype y_min = datum.yolo_labels(i).y_min();
-        const Dtype x_max = datum.yolo_labels(i).x_max();
-        const Dtype y_max = datum.yolo_labels(i).y_max();
-        const Dtype height = y_max - y_min;
-        const Dtype width = x_max - x_min;
-
-        label[i * 5 + 2] = (x_min + x_max) / (2 * width);  //center_x
-        label[i * 5 + 3] = (y_min + y_max) / (2 * height); //center_y
-        label[i * 5 + 4] = width;                          //width
-        label[i * 5 + 5] = height;                         //height
+        label[i * 5 + 2] = datum.yolo_labels(i).center_x(); //center_x
+        label[i * 5 + 3] = datum.yolo_labels(i).center_y(); //center_y
+        label[i * 5 + 4] = datum.yolo_labels(i).width();    //width
+        label[i * 5 + 5] = datum.yolo_labels(i).height();   //height
     }
 }
 
