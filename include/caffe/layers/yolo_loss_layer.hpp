@@ -109,13 +109,13 @@ void build_boxes_from_output(const Dtype* data, std::vector<YoloBox<Dtype> >* ou
 }
 
 template <typename Dtype>
-void fill_the_type(const YoloBox<Dtype>& box, std::vector<int> types) {
-    const Dtype range = 1.0 / S_;
-    for (int i = 0; i < S_; i++) {
-        for (int j = 0; j < S_; j++) {
+void fill_the_type(const YoloBox<Dtype>& box, const int grid_size, std::vector<int>* types) {
+    const Dtype range = 1.0 / grid_size;
+    for (int i = 0; i < grid_size; i++) {
+        for (int j = 0; j < grid_size; j++) {
             YoloBox<Dtype> grid(i * range, j * range, range, range);
             if (grid.compute_iou(box) > 0.4) {
-                types[i * S_ + j] = box.type;
+                (*types)[i * grid_size + j] = box.type;
             }
         }
     }
@@ -142,8 +142,8 @@ class YoloLossLayer : public LossLayer<Dtype> {
   }
 
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-    diff_.ReshapeLike(*bottom[0])
-    vector<int> loss_shape(0);  // Loss layers output a scalar; 0 axes.
+    diff_.ReshapeLike(*bottom[0]);
+    std::vector<int> loss_shape(0);  // Loss layers output a scalar; 0 axes.
     top[0]->Reshape(loss_shape);
   }
 
@@ -155,6 +155,42 @@ class YoloLossLayer : public LossLayer<Dtype> {
   int get_offset(const int i, const int j) const {
       return (i * S_ + j) * count_;
   }
+
+  void fill_coord_diff(Dtype* diff_data, 
+          const int iou_index, 
+          const Dtype center_x_diff, 
+          const Dtype center_y_diff, 
+          const Dtype width_sqrt_diff,
+          const Dtype height_sqrt_diff) {
+      const int i = iou_index / S_; // the row number
+      const int j = iou_index % S_ / B_; // the col number
+      const int b = iou_index % B_; // the box number
+      Dtype* coord_diff = diff_data + get_offset(i, j) + b * 5; 
+      // coord_diff[0] = diff_cofindence
+      coord_diff[1] = lambda_coord_ * center_x_diff; 
+      coord_diff[2] = lambda_coord_ * center_y_diff; 
+      coord_diff[3] = lambda_coord_ * width_sqrt_diff; 
+      coord_diff[4] = lambda_coord_ * height_sqrt_diff; 
+  }
+
+  void fill_confidence_diff(Dtype* diff_data, 
+                            const int iou_index, 
+                            const Dtype confidence_diff, 
+                            const Dtype scale) {
+      const int i = iou_index / S_; // the row number
+      const int j = iou_index % S_ / B_; // the col number
+      const int b = iou_index % B_; // the box number
+      Dtype* conf_diff = diff_data + get_offset(i, j) + b * 5; 
+      conf_diff[0] = scale * confidence_diff;
+  }
+
+  void fill_poss_diff(Dtype* diff_data, const int grid_index, const int class_index, const Dtype poss_diff) {
+       const int i = grid_index / S_;
+       const int j = grid_index % S_;
+       Dtype* p_diff = diff_data + get_offset(i, j) + B_ * 5;
+       p_diff[class_index] = poss_diff;
+  }
+
  protected:
   /// @copydoc YoloLossLayer
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top);
