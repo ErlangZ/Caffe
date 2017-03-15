@@ -23,12 +23,57 @@ class YoloLossLayerTest : public MultiDeviceTest<TypeParam> {
   typedef typename TypeParam::Dtype Dtype;
 
  protected:
-  YoloLossLayerTest<TypeParam>() {
+  YoloLossLayerTest<TypeParam>() :
+      //Data:
+      //data N = 2, S_ = 7; B_ = 2; class_number = 4
+      //output N * S * S * (2 * 5 + 4)
+      //Label:
+      blob_bottom_data_(new Blob<Dtype>(2, 686, 1, 1)),
+      blob_bottom_label_(new Blob<Dtype>(2, 51, 1, 1)), 
+      blob_top_loss_(new Blob<Dtype>()) {
 
+      fill_label();
+
+      // fill the values                                                                              
+      blob_bottom_vec_.push_back(blob_bottom_data_);                                                  
+      blob_bottom_vec_.push_back(blob_bottom_label_);                                                 
+      blob_top_vec_.push_back(blob_top_loss_);     
   }
   virtual ~YoloLossLayerTest<TypeParam>() {
-
+      delete blob_bottom_data_;                                                                       
+      delete blob_bottom_label_;                                                                      
+      delete blob_top_loss_;    
   }
+ protected:
+  void fill_label() {
+      Dtype* label = blob_bottom_label_->mutable_cpu_data();
+      //batch = 1
+      label[0] = 1.1; //there is only one object.
+      label[1] = 2; // type = 2
+      label[2] = 0.2; //center_x = 0.2
+      label[3] = 0.2; //center_y = 0.2
+      label[4] = 0.1; //width = 0.1
+      label[5] = 0.1; //height = 0.1
+      //batch = 2
+      label += blob_bottom_label_->count(1);
+      label[0] = 2.1; //there is 2 objects.
+      label[1] = 1; // type = 1
+      label[2] = 0.3; //center_x = 0.3
+      label[3] = 0.3; //center_y = 0.3
+      label[4] = 0.1; //width = 0.1
+      label[5] = 0.1; //height = 0.1
+      label[6] = 3; // type = 3
+      label[7] = 0.7; //center_x = 0.7
+      label[8] = 0.7; //center_y = 0.7
+      label[9] = 0.1; //width = 0.1
+      label[10] = 0.1; //height = 0.1
+  }
+ protected:
+  Blob<Dtype>* const blob_bottom_data_;                                                             
+  Blob<Dtype>* const blob_bottom_label_;                                                            
+  Blob<Dtype>* const blob_top_loss_;                                                                
+  vector<Blob<Dtype>*> blob_bottom_vec_;                                                            
+  vector<Blob<Dtype>*> blob_top_vec_;    
 };
 
 TYPED_TEST_CASE(YoloLossLayerTest, TestDtypesAndDevices);
@@ -114,4 +159,186 @@ TYPED_TEST(YoloLossLayerTest, TestBoxFill) {
    EXPECT_NEAR(0.2, coord_label[4], 1e-6);
 }
 
+TYPED_TEST(YoloLossLayerTest, TestReshape) {
+   typedef typename TypeParam::Dtype Dtype;
+   LayerParameter layer_param;    
+   layer_param.mutable_yolo_loss_param()->set_class_number(4);
+   YoloLossLayer<Dtype> loss_layer(layer_param);
+   loss_layer.Reshape(this->blob_bottom_vec_, this->blob_top_vec_);
+   EXPECT_EQ(1, this->blob_top_vec_[0]->count());
+}
+
+TYPED_TEST(YoloLossLayerTest, TestForwardBackWard) {
+   typedef typename TypeParam::Dtype Dtype;
+   LayerParameter layer_param;    
+   layer_param.mutable_yolo_loss_param()->set_class_number(4);
+   layer_param.mutable_yolo_loss_param()->set_iou_threshold(0.01);
+   YoloLossLayer<Dtype> loss_layer(layer_param);
+   loss_layer.lambda_coord_ = 5.0;
+   loss_layer.lambda_noobj_ = 0.5;
+   loss_layer.Reshape(this->blob_bottom_vec_, this->blob_top_vec_);
+   ASSERT_EQ(1, this->blob_top_vec_[0]->count());
+
+   //Set Data.
+   Dtype* data = this->blob_bottom_data_->mutable_cpu_data();
+   caffe_memset(sizeof(Dtype) * (this->blob_bottom_data_->count()), 0, data);
+   //Batch 0 
+   Dtype* now_data = data + loss_layer.get_offset(1, 1); 
+   now_data[0] = 0.4;  //confidence = 0.4
+   now_data[1] = 0.2;  //center_x = 0.2
+   now_data[2] = 0.2;  //center_y = 0.2
+   now_data[3] = 0.14;  //width = 0.1
+   now_data[4] = 0.08;  //height = 0.1
+   now_data[5] = 0.3;  //confidence = 0.3
+   now_data = data + loss_layer.get_offset(1, 1); //(0.2, 0.2) in (1, 1) 
+   now_data[11] = 0.4;   //type 1 poss
+   now_data[12] = 1.4;   //type 2 poss(right)
+   //Batch 1
+   now_data = data + this->blob_bottom_data_->count(1) + loss_layer.get_offset(2, 3);
+   now_data[0] = 0.4;  //confidence = 0.4
+   now_data[1] = 0.3;  //center_x = 0.3
+   now_data[2] = 0.3;  //center_y = 0.3
+   now_data[3] = 0.14;  //width = 0.1
+   now_data[4] = 0.08;  //height = 0.1
+   now_data = data + this->blob_bottom_data_->count(1) + loss_layer.get_offset(2, 2);
+   now_data[11] = 0.4;   //type 1 poss(right)
+   now_data[12] = 1.6;   //type 2 poss
+
+   now_data = data + this->blob_bottom_data_->count(1) + loss_layer.get_offset(5, 6);
+   now_data[0] = 0.4;  //confidence = 0.4
+   now_data[1] = 0.7;  //center_x = 0.7
+   now_data[2] = 0.7;  //center_y = 0.7
+   now_data[3] = 0.14;  //width = 0.1
+   now_data[4] = 0.08;  //height = 0.1
+   now_data = data + this->blob_bottom_data_->count(1) + loss_layer.get_offset(5, 5);
+   now_data[11] = 0.4;   //type 1 poss
+   now_data[13] = 1.7;   //type 3 poss(right)
+
+   //Foward
+   loss_layer.Forward_cpu(this->blob_bottom_vec_, this->blob_top_vec_);
+   loss_layer.Backward_cpu(this->blob_top_vec_, vector<bool>(), this->blob_bottom_vec_);
+
+   //EXPECT
+   //batch-0 label-0
+   EXPECT_NEAR((0.4 - 1.0) * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[0], 1e-4);
+   EXPECT_NEAR(0.0 * loss_layer.lambda_coord_* 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[1], 1e-4);
+   EXPECT_NEAR(0.0 * loss_layer.lambda_coord_* 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[2], 1e-4);
+   EXPECT_NEAR(0.0774228 * loss_layer.lambda_coord_ * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[3], 1e-4);
+   EXPECT_NEAR(-0.059016 * loss_layer.lambda_coord_ * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[4], 1e-4);
+   EXPECT_NEAR((0.3 - 0.0) * loss_layer.lambda_noobj_ * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[5], 1e-4);
+   EXPECT_NEAR(0.0 * loss_layer.lambda_coord_ * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[6], 1e-4);
+   EXPECT_NEAR(0.0 * loss_layer.lambda_coord_ * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[7], 1e-4);
+   EXPECT_NEAR(0.0 * loss_layer.lambda_coord_ * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[8], 1e-4);
+   EXPECT_NEAR(0.0 * loss_layer.lambda_coord_ * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[9], 1e-4);
+   EXPECT_NEAR(0.0 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[10], 1e-4);
+   EXPECT_NEAR(0.4 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[11], 1e-4);
+   EXPECT_NEAR(0.4 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[12], 1e-4);
+   EXPECT_NEAR(0.0 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + loss_layer.get_offset(1, 1))[13], 1e-4);
+
+   //batch-1 label-0
+   EXPECT_NEAR((0.4 - 1.0) * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 3))[0], 1e-4);
+   EXPECT_NEAR(0.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1)  + loss_layer.get_offset(2, 3))[1], 1e-4);
+   EXPECT_NEAR(0.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 3))[2], 1e-4);
+   EXPECT_NEAR(0.0774228 * loss_layer.lambda_coord_ * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 3))[3], 1e-4);
+   EXPECT_NEAR(-0.059016 * loss_layer.lambda_coord_ * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 3))[4], 1e-4);
+   EXPECT_NEAR(0.0 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 3))[10], 1e-4);
+   EXPECT_NEAR(0.0 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 3))[11], 1e-4);
+   EXPECT_NEAR(0.0 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 3))[12], 1e-4);
+   EXPECT_NEAR(0.0 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 3))[13], 1e-4);
+   EXPECT_NEAR(0.0 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 2))[10], 1e-4);
+   EXPECT_NEAR((0.4 - 1.0) * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 2))[11], 1e-4);
+   EXPECT_NEAR((1.6 - 0.0) * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 2))[12], 1e-4);
+   EXPECT_NEAR(0.0 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(2, 2))[13], 1e-4);
+
+   //batch-1 label-1
+   EXPECT_NEAR((0.4 - 1.0) * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(5, 6))[0], 1e-4);
+   EXPECT_NEAR(0.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1)  + loss_layer.get_offset(5, 6))[1], 1e-4);
+   EXPECT_NEAR(0.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(5, 6))[2], 1e-4);
+   EXPECT_NEAR(0.0774228 * loss_layer.lambda_coord_ * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(5, 6))[3], 1e-4);
+   EXPECT_NEAR(-0.059016 * loss_layer.lambda_coord_ * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(5, 6))[4], 1e-4);
+   EXPECT_NEAR(0.0 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(5, 5))[10], 1e-4);
+   EXPECT_NEAR((0.4 - 0.0) * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(5, 5))[11], 1e-4);
+   EXPECT_NEAR(0.0 * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(5, 5))[12], 1e-4);
+   EXPECT_NEAR((1.7 - 1.0) * 1.0 * 2.0, (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1) + loss_layer.get_offset(5, 5))[13], 1e-4);
+/*
+   for (int i = 0; i < this->blob_bottom_data_->count(); i++) {
+       std::cout << this->blob_bottom_data_->cpu_data()[i] << " ";
+   }
+   std::cout << endl;
+   for (int i = 0; i < this->blob_bottom_data_->count(); i++) {
+       std::cout << this->blob_bottom_data_->cpu_diff()[i] << " ";
+   }
+   std::cout << endl;
+*/
+}
+
+TYPED_TEST(YoloLossLayerTest, TestForwardBackWard2) {
+   typedef typename TypeParam::Dtype Dtype;
+   LayerParameter layer_param;    
+   layer_param.mutable_yolo_loss_param()->set_class_number(4);
+   layer_param.mutable_yolo_loss_param()->set_iou_threshold(0.40);
+   YoloLossLayer<Dtype> loss_layer(layer_param);
+   loss_layer.lambda_coord_ = 5.0;
+   loss_layer.lambda_noobj_ = 0.5;
+   loss_layer.Reshape(this->blob_bottom_vec_, this->blob_top_vec_);
+   ASSERT_EQ(1, this->blob_top_vec_[0]->count());
+
+   //Set Data.
+   Dtype* data = this->blob_bottom_data_->mutable_cpu_data();
+   caffe_memset(sizeof(Dtype) * (this->blob_bottom_data_->count()), 0, data);
+   //Batch 0 
+   Dtype* now_data = data + loss_layer.get_offset(1, 1); 
+   now_data[0] = 1.0;  //confidence = 0.4
+   now_data[1] = 0.2;  //center_x = 0.2
+   now_data[2] = 0.2;  //center_y = 0.2
+   now_data[3] = 0.1;  //width = 0.1
+   now_data[4] = 0.1;  //height = 0.1
+   now_data[5] = 0.0;  //confidence = 0.0
+   now_data = data + loss_layer.get_offset(1, 1); //(0.2, 0.2) in (1, 1) 
+   now_data[12] = 1.0;   //type 2 poss(right)
+   //Batch 1
+   now_data = data + this->blob_bottom_data_->count(1) + loss_layer.get_offset(2, 3);
+   now_data[0] = 1.0;  //confidence = 0.4
+   now_data[1] = 0.3;  //center_x = 0.3
+   now_data[2] = 0.3;  //center_y = 0.3
+   now_data[3] = 0.1;  //width = 0.1
+   now_data[4] = 0.1;  //height = 0.1
+   now_data = data + this->blob_bottom_data_->count(1) + loss_layer.get_offset(2, 2);
+   now_data[11] = 1.0;   //type 1 poss(right)
+
+   now_data = data + this->blob_bottom_data_->count(1) + loss_layer.get_offset(5, 6);
+   now_data[0] = 1.0;  //confidence = 0.4
+   now_data[1] = 0.7;  //center_x = 0.7
+   now_data[2] = 0.7;  //center_y = 0.7
+   now_data[3] = 0.1;  //width = 0.1
+   now_data[4] = 0.1;  //height = 0.1
+   now_data = data + this->blob_bottom_data_->count(1) + loss_layer.get_offset(5, 4);
+   now_data[13] = 1.0; //type 3 poss(right)
+
+   //Foward
+   loss_layer.Forward_cpu(this->blob_bottom_vec_, this->blob_top_vec_);
+   loss_layer.Backward_cpu(this->blob_top_vec_, vector<bool>(), this->blob_bottom_vec_);
+
+   //EXPECT
+   EXPECT_NEAR(0.0, this->blob_top_vec_[0]->cpu_data()[0], 1e-6);
+   /*
+   std::cout << "XXXXXXXXXXXXXXXXXXXX" << endl;
+   for (int i = 0; i < this->blob_bottom_data_->count(); i++) {
+       std::cout << this->blob_bottom_data_->cpu_data()[i] << " ";
+   }
+   std::cout << endl;
+   std::cout << "XXXXXXXXXXXXXXXXXXXX" << endl;
+   for (int i = 0; i < loss_layer.S_; i++) {
+   for (int j = 0; j < loss_layer.S_; j++) {
+       std::cout << "i:" << i << " j:" << j << std::endl;
+       for (int k = 0; k < loss_layer.count_; k++) {
+          std::cout << (this->blob_bottom_data_->cpu_diff() + this->blob_bottom_data_->offset(1))[loss_layer.get_offset(i, j) + k] << " ";
+       }
+       std::cout << std::endl;
+   }
+   }
+   std::cout << endl;
+   */
+
+}
 }

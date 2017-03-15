@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Baidu.com, Inc. All Rights Reserved
+
 // @author erlangz(zhengwenchao@baidu.com)
 // @date 2017/03/14 15:40:52
 // @file src/caffe/layers/yolo_loss_layer.cpp
@@ -47,26 +47,31 @@ void YoloLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                     best_iou_index = j;
                 }
             }
-            CHECK(best_iou_index >= 0) << "IOU Index should be positive.";
 
-            responsible[i] = true;
-            const Dtype center_x_diff = output_boxes[best_iou_index].center_x - labels_boxes[i].center_x; 
-            const Dtype center_y_diff = output_boxes[best_iou_index].center_y - labels_boxes[i].center_y;
-            const Dtype sqrt_width_diff = sqrt(output_boxes[best_iou_index].width) - sqrt(labels_boxes[i].width);
-            const Dtype sqrt_height_diff = sqrt(output_boxes[best_iou_index].height) - sqrt(labels_boxes[i].height);
-            fill_coord_diff(diff_data, best_iou_index, 
-                            center_x_diff, center_y_diff, 
-                            sqrt_width_diff / (2 * sqrt(output_boxes[best_iou_index].width)), 
-                            sqrt_height_diff / (2 * sqrt(output_boxes[best_iou_index].height)));
-            loss += lambda_coord_  * 
-                    (square(center_x_diff) + square(center_y_diff) + 
-                     square(sqrt_width_diff)+ square(sqrt_height_diff));
-
-            const Dtype confidence_diff = output_boxes[best_iou_index].confidence - 1.0;
-            fill_confidence_diff(diff_data, best_iou_index, confidence_diff, 1.0); 
-            loss += square(confidence_diff);
-
-            fill_the_type(labels_boxes[i], S_, &contain_object);
+            if (best_iou_index < 0) {
+                continue;
+            } else {
+                responsible[best_iou_index] = true;
+                const Dtype center_x_diff = output_boxes[best_iou_index].center_x - labels_boxes[i].center_x; 
+                const Dtype center_y_diff = output_boxes[best_iou_index].center_y - labels_boxes[i].center_y;
+                const Dtype sqrt_width_diff = sqrt(output_boxes[best_iou_index].width) - sqrt(labels_boxes[i].width);
+                const Dtype sqrt_height_diff = sqrt(output_boxes[best_iou_index].height) - sqrt(labels_boxes[i].height);
+                fill_coord_diff(diff_data, 
+                                best_iou_index, 
+                                center_x_diff, center_y_diff, 
+                                sqrt_width_diff / (2 * sqrt(output_boxes[best_iou_index].width)), 
+                                sqrt_height_diff / (2 * sqrt(output_boxes[best_iou_index].height)));
+                loss += lambda_coord_  * 
+                        (square(center_x_diff) + 
+                         square(center_y_diff) + 
+                         square(sqrt_width_diff) + 
+                         square(sqrt_height_diff));
+             
+                const Dtype confidence_diff = output_boxes[best_iou_index].confidence - 1.0;
+                fill_confidence_diff(diff_data, best_iou_index, confidence_diff, 1.0); 
+                loss += square(confidence_diff);
+            }
+            fill_the_type(labels_boxes[i], S_, iou_threshold_, &contain_object);
         }
         // for each no-response-output-box
         for (int i = 0; i < output_boxes.size(); i++) {
@@ -88,10 +93,10 @@ void YoloLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
             const int offset = i * count_ + B_ * 5; 
             const Dtype* output_data = output_blob->cpu_data() + output_blob->offset(n) + offset;
             for (int j = 0; j < class_number_; j++) {
-                const Dtype poss_diff = output_data[j] - poss[j]; 
-                loss += square(poss_diff);
-                fill_poss_diff(diff_data, i, j, poss_diff);
+                poss[j] = output_data[j] - poss[j]; 
+                loss += square(poss[j]);
             }
+            caffe_copy(class_number_, poss, diff_data + offset);
         }
     }
 
@@ -104,7 +109,7 @@ template<typename Dtype>
 void YoloLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
                                         const vector<bool>& propagate_down, 
                                         const vector<Blob<Dtype>*>& bottom) {
-    caffe_copy(diff_.count(), diff_.cpu_data(), bottom[0]->mutable_cpu_data());
+    caffe_copy(diff_.count(), diff_.cpu_data(), bottom[0]->mutable_cpu_diff());
 }
 
 #ifdef CPU_ONLY

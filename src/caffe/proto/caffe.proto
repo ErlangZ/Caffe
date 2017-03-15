@@ -56,6 +56,11 @@ message YoloDataPrameter {
   optional int32 max_labels_number = 1 [default = 4];
 }
 
+message YoloLossLayerParam {
+  optional int32 class_number = 1 [default = 20];
+  optional float iou_threshold = 2 [default = 0.4];
+}
+
 message FillerParameter {
   // The filler type.
   optional string type = 1 [default = 'constant'];
@@ -137,7 +142,7 @@ message SolverParameter {
   optional NetParameter net_param = 25;
 
   optional string train_net = 1; // Proto filename for the train net.
-  repeated string test_net = 2; // Proto filenames for the test nets.
+  repeated string test_net = 2; // Proto filenames for the test nets.default = 20];
   optional NetParameter train_net_param = 21; // Inline train net params.
   repeated NetParameter test_net_param = 22; // Inline test net params.
 
@@ -439,8 +444,8 @@ message LayerParameter {
   optional smartseg.ViewPoolingParameter smartseg_view_pooling_param = 2011;
   optional smartseg.ViewUnpoolingParameter smartseg_view_unpooling_param = 2012;
   optional smartseg.PointInterpolationParameter smartseg_point_interpolation_param = 2013;
+  optional YoloLossLayerParam yolo_loss_param = 4001;
     
-  optional YoloPreTrainAccuracyParam yolo_pretrain_accuracy_param = 4000;
 }
 
 // Message that stores parameters used to apply transformation
