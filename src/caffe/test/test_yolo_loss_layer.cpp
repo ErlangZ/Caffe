@@ -13,6 +13,7 @@
 #include "caffe/common.hpp"
 #include "caffe/filler.hpp"
 #include "caffe/layers/yolo_loss_layer.hpp"
+#include "caffe/layers/yolo_data_layer.hpp"
 #include "caffe/test/test_caffe_main.hpp"
 #include "caffe/test/test_gradient_check_util.hpp"
 
@@ -77,6 +78,40 @@ class YoloLossLayerTest : public MultiDeviceTest<TypeParam> {
 };
 
 TYPED_TEST_CASE(YoloLossLayerTest, TestDtypesAndDevices);
+
+/*
+TYPED_TEST(YoloLossLayerTest, ReadData) {
+    typedef typename TypeParam::Dtype Dtype;
+
+    vector<Blob<Dtype>*> blob_bottom_vec;                                                            
+    vector<Blob<Dtype>*> blob_top_vec(2, NULL);    
+    blob_top_vec[0] = new Blob<Dtype>();
+    blob_top_vec[1] = new Blob<Dtype>();
+
+    LayerParameter layer_param;    
+    //std::string db_file(CMAKE_SOURCE_DIR "/caffe/test/test_data/yolo_train_lmdb");
+    std::string db_file("/home/erlangz/Caffe/models/Pascal/pascal_train_lmdb");
+    layer_param.mutable_data_param()->set_source(db_file);
+    layer_param.mutable_data_param()->set_batch_size(1);
+    layer_param.mutable_yolo_data_param()->set_max_labels_number(10); //10 * 5 + 1
+    layer_param.mutable_data_param()->set_backend(DataParameter::LMDB);
+
+    YoloDataLayer<Dtype> data_layer(layer_param);
+    data_layer.LayerSetUp(blob_bottom_vec, blob_top_vec);
+    while(true) {
+       data_layer.Forward(blob_bottom_vec, blob_top_vec);
+       std::vector<YoloBox<Dtype> > labels_boxes;
+       build_boxes_from_labels(blob_top_vec[1]->cpu_data(), &labels_boxes);
+       for (int i = 0; i < labels_boxes.size(); i++) {
+       //if (labels_boxes[0].width < 0.0 || labels_boxes[0].height < 0.0) {
+         std::cout << labels_boxes[i].center_x << " " << labels_boxes[i].center_x<< " "
+                   << labels_boxes[i].width << " " << labels_boxes[i].height << " " 
+                  << labels_boxes[i].type << std::endl;
+       // }
+       }
+    }
+}
+*/
 
 TYPED_TEST(YoloLossLayerTest, TestBoxInit) {
    typedef typename TypeParam::Dtype Dtype;
@@ -339,6 +374,5 @@ TYPED_TEST(YoloLossLayerTest, TestForwardBackWard2) {
    }
    std::cout << endl;
    */
-
 }
 }

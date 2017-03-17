@@ -42,7 +42,7 @@ void YoloLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
             int best_iou_index = -1;
             for (int j = 0; j < output_boxes.size(); j++) {
                 Dtype iou = labels_boxes[i].compute_iou(output_boxes[j]);
-                if (iou > best_iou) {
+                if (iou >= best_iou) {
                     best_iou = iou;
                     best_iou_index = j;
                 }
@@ -51,6 +51,7 @@ void YoloLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
             if (best_iou_index < 0) {
                 continue;
             } else {
+//                std::cout  << "best_iou: " << best_iou << " confidence:" << output_boxes[best_iou_index].confidence << std::endl;
                 responsible[best_iou_index] = true;
                 const Dtype center_x_diff = output_boxes[best_iou_index].center_x - labels_boxes[i].center_x; 
                 const Dtype center_y_diff = output_boxes[best_iou_index].center_y - labels_boxes[i].center_y;
@@ -68,7 +69,7 @@ void YoloLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                          square(sqrt_height_diff));
              
                 const Dtype confidence_diff = output_boxes[best_iou_index].confidence - 1.0;
-                fill_confidence_diff(diff_data, best_iou_index, confidence_diff, 1.0); 
+                fill_confidence_diff(diff_data, best_iou_index, confidence_diff, lambda_obj_); 
                 loss += square(confidence_diff);
             }
             fill_the_type(labels_boxes[i], S_, iou_threshold_, &contain_object);

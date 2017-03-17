@@ -22,7 +22,7 @@ with env.begin() as contxt:
         datum = caffe.proto.caffe_pb2.Datum()
         datum.ParseFromString(v)
         print "read an image:"
-        print len(datum.multi_labels)
+        print datum.multi_labels
         print len(datum.data)
         print "XXXXXXXXXXXX"
         #data = caffe.io.datum_to_array(datum)

@@ -1,0 +1,30 @@
+net: "yolo_tiny.prototxt"
+type: "SGD"
+solver_mode: GPU
+device_id: 0
+debug_info: false
+
+max_iter: 500000
+average_loss: 100
+display: 10
+
+test_iter: 200
+test_interval: 20 
+test_compute_loss: true
+test_initialization: true
+
+base_lr: 0.001 
+lr_policy: "step"
+gamma: 0.5
+power: 1.0
+stepsize: 50000
+iter_size: 32
+momentum: 0.9
+
+weight_decay: 0.0005
+regularization_type: "L2"
+
+snapshot: 10000
+snapshot_prefix: "caffe_yolo_train"
+snapshot_diff: false
+snapshot_format: BINARYPROTO
