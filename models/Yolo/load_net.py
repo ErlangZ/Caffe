@@ -35,7 +35,7 @@ Types = dict([(Names[name], name) for name in Names])
 import sys
 sys.path.append('/home/erlangz/Caffe/build/install/python/')
 net_def_prototxt = '/home/erlangz/Caffe/models/Yolo/yolo_tiny.prototxt'
-trained_net_caffemodel = '/home/erlangz/Caffe/models/Yolo/caffe_yolo_train_iter_220.caffemodel'
+trained_net_caffemodel = '/home/erlangz/Caffe/models/Yolo/caffe_yolo_train_iter_414.caffemodel'
 images_dir = '/home/erlangz/darknet/Data/VOCdevkit/VOCdevkit/VOC2012/JPEGImages/'
 
 import caffe
@@ -91,8 +91,8 @@ class Box(object):
         return t
 
     def draw(self, image):
-        width = image.shape[0]
-        height = image.shape[1]
+        width = image.shape[1]
+        height = image.shape[0]
         x_min = int((self.x - self.w / 2.0) * width)
         y_min = int((self.y - self.h / 2.0) * height)
         x_max = int((self.x + self.w / 2.0) * width)
@@ -122,8 +122,7 @@ if __name__ == "__main__":
         out = net.forward()
 
         im = cv2.imread(images[0]) 
-        print dir(im)
-        print im.shape
+        print images[0], im.shape
         for box in confidence(net.blobs['ip2'].data, 0.6):
             box.draw(im)
         cv2.imshow("image", im)
