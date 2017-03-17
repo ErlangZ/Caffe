@@ -44,16 +44,17 @@ void YoloDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   // Each Image has at most MAX_LABEL labels
   // label's first element is the number of labels.
   // Each label has 5 column class/x_center/y_center/width/height
-  const int max_labels_number = this->layer_param_.yolo_data_param().max_labels_number();
+  max_labels_number_ = this->layer_param_.yolo_data_param().max_labels_number();
   if (this->output_labels_) {
     vector<int> label_shape(4, 1);
     label_shape[0] = batch_size;
-    label_shape[1] = 1 + max_labels_number * 5;
+    label_shape[1] = 1 + max_labels_number_ * 5;
     for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
          this->prefetch_[i].label_.Reshape(label_shape);
     }
     top[1]->Reshape(label_shape);
   }
+  LOG(INFO) << "max_labels_number is:"  << max_labels_number_;
 }
 
 
@@ -113,6 +114,7 @@ void YoloDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
 
 template<typename Dtype>
 void YoloDataLayer<Dtype>::init_yolo_label(Dtype* label, const Datum& datum) {
+    CHECK(datum.yolo_labels_size() <= max_labels_number_);
     label[0] = datum.yolo_labels_size();
     for (int i = 0; i < datum.yolo_labels_size(); i++) {
         label[i * 5 + 1] = datum.yolo_labels(i).label(); 

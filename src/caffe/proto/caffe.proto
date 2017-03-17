@@ -53,7 +53,7 @@ message Datum {
 }
 
 message YoloDataPrameter {
-  optional int32 max_labels_number = 1 [default = 4];
+  optional int32 max_labels_number = 1 [default = 10];
 }
 
 message YoloLossLayerParam {

@@ -32,6 +32,7 @@ public:
  virtual inline int MaxTopBlobs() const { return 2; }
  void init_yolo_label(Dtype* label, const Datum& datum); 
 protected:
+ int max_labels_number_;
  virtual void load_batch(Batch<Dtype>* batch);
  DataReader reader_;
 };
