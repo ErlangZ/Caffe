@@ -134,7 +134,7 @@ class YoloLossLayer : public LossLayer<Dtype> {
   explicit YoloLossLayer(const LayerParameter& param) : LossLayer<Dtype>(param) {
       lambda_coord_ = 5.0;
       lambda_noobj_ = 0.5;
-      lambda_obj_ = 50.0;
+      lambda_obj_ = 1.0;
       S_ = 7;
       B_ = 2;
       iou_threshold_ = param.yolo_loss_param().iou_threshold();

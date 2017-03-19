@@ -9,7 +9,7 @@ layer {
   }
   data_param {
     source: "pascal_train_lmdb"
-    batch_size: 1
+    batch_size: 16
     backend: LMDB
   }
   transform_param {
@@ -27,7 +27,7 @@ layer {
   }
   data_param {
     source: "pascal_val_lmdb"
-    batch_size: 1
+    batch_size: 16
     backend: LMDB
   }
   transform_param {

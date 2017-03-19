@@ -4,27 +4,27 @@ solver_mode: GPU
 device_id: 0
 debug_info: false
 
-max_iter: 500000
-average_loss: 100
-display: 10
+max_iter: 40000
+average_loss: 1000
+display: 50
 
-test_iter: 200
-test_interval: 20 
+test_iter: 1000
+test_interval: 1000 
 test_compute_loss: true
 test_initialization: true
 
-base_lr: 0.001 
+base_lr: 0.00005 
 lr_policy: "step"
-gamma: 0.5
+gamma: 0.9
 power: 1.0
-stepsize: 50000
-iter_size: 32
+stepsize: 1000
+iter_size: 4
 momentum: 0.9
 
 weight_decay: 0.0005
 regularization_type: "L2"
 
-snapshot: 10000
-snapshot_prefix: "caffe_yolo_train"
+snapshot: 1000
+snapshot_prefix: "yolo"
 snapshot_diff: false
 snapshot_format: BINARYPROTO
