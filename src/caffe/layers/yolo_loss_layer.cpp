@@ -36,10 +36,18 @@ void YoloLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
         }
         vector<int> contain_object(S_ * S_, -1);  // -1 means No-object.
         vector<bool> responsible(S_ * S_ * B_, false);
+        /*
+        std::cout << " labels_number:" << labels_boxes.size() << std::endl;
+        std::cout << "XXXXXXXXXXX:";
+        for (int k = 0; k < 50; k++) {
+            std::cout << label_data[k] << " ";
+        }   
+        std::cout << std::endl;
+        */
         // for each label, find the 'response box' for it.
         for (int i = 0; i < labels_boxes.size(); i++) {
             Dtype best_iou = 0.0;
-            int best_iou_index = -1;
+            int best_iou_index = 0;
             for (int j = 0; j < output_boxes.size(); j++) {
                 Dtype iou = labels_boxes[i].compute_iou(output_boxes[j]);
                 if (iou >= best_iou) {
@@ -48,30 +56,29 @@ void YoloLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                 }
             }
 
-            if (best_iou_index < 0) {
-                continue;
-            } else {
-//                std::cout  << "best_iou: " << best_iou << " confidence:" << output_boxes[best_iou_index].confidence << std::endl;
-                responsible[best_iou_index] = true;
-                const Dtype center_x_diff = output_boxes[best_iou_index].center_x - labels_boxes[i].center_x; 
-                const Dtype center_y_diff = output_boxes[best_iou_index].center_y - labels_boxes[i].center_y;
-                const Dtype sqrt_width_diff = sqrt(output_boxes[best_iou_index].width) - sqrt(labels_boxes[i].width);
-                const Dtype sqrt_height_diff = sqrt(output_boxes[best_iou_index].height) - sqrt(labels_boxes[i].height);
-                fill_coord_diff(diff_data, 
-                                best_iou_index, 
-                                center_x_diff, center_y_diff, 
-                                sqrt_width_diff / (2 * sqrt(output_boxes[best_iou_index].width)), 
-                                sqrt_height_diff / (2 * sqrt(output_boxes[best_iou_index].height)));
-                loss += lambda_coord_  * 
-                        (square(center_x_diff) + 
-                         square(center_y_diff) + 
-                         square(sqrt_width_diff) + 
-                         square(sqrt_height_diff));
-             
-                const Dtype confidence_diff = output_boxes[best_iou_index].confidence - 1.0;
-                fill_confidence_diff(diff_data, best_iou_index, confidence_diff, lambda_obj_); 
-                loss += square(confidence_diff);
-            }
+//            std::cout  << "best_iou: " << best_iou << " confidence:" << output_boxes[best_iou_index].confidence << std::endl;
+//            std::cout  << "width:" << labels_boxes[i].width << " height:" << labels_boxes[i].height<< std::endl;
+            responsible[best_iou_index] = true;
+            const Dtype center_x_diff = output_boxes[best_iou_index].center_x - labels_boxes[i].center_x; 
+            const Dtype center_y_diff = output_boxes[best_iou_index].center_y - labels_boxes[i].center_y;
+            const Dtype sqrt_width_diff = sqrt(output_boxes[best_iou_index].width) - sqrt(labels_boxes[i].width);
+            const Dtype sqrt_height_diff = sqrt(output_boxes[best_iou_index].height) - sqrt(labels_boxes[i].height);
+//            std::cout << center_x_diff << " " << center_y_diff << " " << sqrt_width_diff << " " << sqrt_height_diff;
+            fill_coord_diff(diff_data, 
+                            best_iou_index, 
+                            center_x_diff, center_y_diff, 
+                            sqrt_width_diff / (2 * sqrt(output_boxes[best_iou_index].width)), 
+                            sqrt_height_diff / (2 * sqrt(output_boxes[best_iou_index].height)));
+            loss += lambda_coord_  * 
+                    (square(center_x_diff) + 
+                     square(center_y_diff) + 
+                     square(sqrt_width_diff) + 
+                     square(sqrt_height_diff));
+            
+            const Dtype confidence_diff = output_boxes[best_iou_index].confidence - 1.0;
+            //std::cout << "output_Confidence:" <<output_boxes[best_iou_index].confidence << " LabelsConfidence:" << labels_boxes[i].confidence << std::endl; 
+            fill_confidence_diff(diff_data, best_iou_index, confidence_diff, lambda_obj_); 
+            loss += square(confidence_diff);
             fill_the_type(labels_boxes[i], S_, iou_threshold_, &contain_object);
         }
         // for each no-response-output-box
@@ -79,7 +86,7 @@ void YoloLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
             if (!responsible[i]) {
                 const Dtype confidence_diff = output_boxes[i].confidence - 0.0;
                 fill_confidence_diff(diff_data, i, confidence_diff, lambda_noobj_); 
-                loss += lambda_noobj_ * square(0.0 - output_boxes[i].confidence);
+                loss += lambda_noobj_ * square(confidence_diff);
             }
         }
 
@@ -102,6 +109,7 @@ void YoloLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     }
 
     loss /= bottom[0]->num();
+    CHECK(!isnan(loss));
     top[0]->mutable_cpu_data()[0] = loss;
     caffe_scal(diff_.count(), Dtype(2.0), diff_.mutable_cpu_data());
 }
