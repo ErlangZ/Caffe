@@ -33,13 +33,13 @@ Names = {"aeroplane": 0,
         "tvmonitor": 19 }
 Types = dict([(Names[name], name) for name in Names])
 import sys
-sys.path.append('/home/erlangz/ErlangZ/Code/Caffe/build/install/python/')
+sys.path.append('/home/erlangz/Caffe/build/install/python/')
 import os
 import caffe
 import numpy as np
-net_def_prototxt = '/home/erlangz/ErlangZ/Code/Caffe/models/Yolo/yolo_deploy.prototxt'
-trained_net_caffemodel = '/home/erlangz/ErlangZ/Code/Caffe/models/Yolo/yolo_iter_5000.caffemodel'
-images_dir = '/home/erlangz/ErlangZ/Code/Caffe/models/Pascal/VOC2012/JPEGImages/'
+net_def_prototxt = '/home/erlangz/Caffe/models/Yolo/yolo_deploy.prototxt'
+trained_net_caffemodel = '/home/erlangz/Caffe/models/Yolo/yolo_iter_6111.caffemodel'
+images_dir = '/home/erlangz/darknet/Data/VOCdevkit/VOCdevkit/VOC2012/JPEGImages'
 MEAN_PROTO_PATH = 'imagenet.mean' 
 MEAN_NPY_PATH = 'mean.npy'                         # 转换后的numpy格式图像均值文件路径
 

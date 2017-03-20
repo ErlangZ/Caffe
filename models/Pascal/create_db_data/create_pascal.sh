@@ -5,7 +5,7 @@ set -e
 
 #DATA=/home/erlangz/darknet/Data/VOCdevkit/VOCdevkit/VOC2012/JPEGImages
 DATA=`pwd`
-TOOLS=/home/erlangz/Caffe/build/tools
+TOOLS=/home/erlangz/ErlangZ/Code/Caffe/build/tools
 
 TRAIN_DATA_ROOT=./train/
 VAL_DATA_ROOT=./test/
