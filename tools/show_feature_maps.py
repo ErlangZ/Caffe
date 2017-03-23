@@ -21,7 +21,7 @@ import numpy as np
 
 net_def_prototxt = '/home/erlangz/caffe/build/deep-visualization-toolbox/models/caffenet-yos/caffenet-yos-deploy.prototxt'
 trained_net_caffemodel = '/home/erlangz/caffe/build/deep-visualization-toolbox/models/caffenet-yos/caffenet-yos-weights'
-MEAN_NPY_PATH = './ilsvrc_2012_mean.npy'        
+MEAN_NPY_PATH = '/home/erlangz/caffe/build/deep-visualization-toolbox/models/caffenet-yos/ilsvrc_2012_mean.npy'        
 
 
 net = caffe.Net(net_def_prototxt, trained_net_caffemodel, caffe.TEST)
@@ -62,28 +62,46 @@ def show_features(features, name, max_width=10):
         data[H*pic_h : (H+1)*pic_h, W*pic_w : (W+1)*pic_w] = pic
     cv2.imshow(name, data) 
 
+def keep_top_activity(features, top=9): 
+    pic_numbers = features.shape[0]
+    pic_h = features.shape[1]
+    pic_w = features.shape[2]
+
+    new_features = np.zeros(features.shape) 
+    for pic_number in xrange(pic_numbers):
+        pic = features[pic_number]
+        h_max_indexes, w_max_indexes = np.unravel_index(pic.ravel().argsort()[-top:], (pic_h, pic_w)) 
+        for h, w in zip(h_max_indexes, w_max_indexes):
+            new_features[pic_number, h, w] = pic[h, w]
+    return new_features    
+
+
+
+def ShowLayerFeatures(net, name):
+    feature_map = net.blobs[name].data[0]  #batch_size=1
+    show_features(conv2_feature_map, name + "_feature")
+
+
+def ShowLayerFeaturesInPixelSpace(net, name):
+    conv1_feature_map = net.blobs[name].data[0]  #batch_size=1
+    net.blobs[name].diff[0] = keep_top_activity(conv1_feature_map)
+    net.deconv(start=name)
+    data = net.blobs['data'].diff[0]
+    cv2.imshow(name + "_features_in_pic", data.transpose(1,2,0))
+
 
 if __name__ == "__main__":
-    image_names = os.listdir('../../input_images/')
+    images_dir = '/home/erlangz/caffe/build/deep-visualization-toolbox/input_images/' 
+    image_names = os.listdir(images_dir)
     #image_names = ['../../input_images/ILSVRC2012_val_00008338.jpg',]
     # load data, len(images) = batchsize
     for image in image_names:
-        image = os.path.join('../../input_images', image)
+        image = os.path.join(images_dir, image)
         net.blobs['data'].data[...] = transformer.preprocess('data',caffe.io.load_image(image))
         # process the data through network
         out = net.forward()
-        
-        data = net.blobs['data'].data[0]
-        show_features(data, "data", 3)
-
-        conv1_feature_map = net.blobs['conv1'].data[0]  #batch_size=1
-        show_features(conv1_feature_map, "conv1_feature")
-
-        conv2_feature_map = net.blobs['conv2'].data[0]  #batch_size=1
-        show_features(conv2_feature_map, "conv2_feature")
-
-        conv3_feature_map = net.blobs['conv3'].data[0]  #batch_size=1
-        show_features(conv3_feature_map, "conv3_feature")
-
+        ShowLayerFeaturesInPixelSpace(net, 'conv1')
+        ShowLayerFeaturesInPixelSpace(net, 'conv2')
+        ShowLayerFeaturesInPixelSpace(net, 'conv3')
         cv2.waitKey(0)
 
