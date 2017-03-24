@@ -62,7 +62,7 @@ def show_features(features, name, max_width=10):
         data[H*pic_h : (H+1)*pic_h, W*pic_w : (W+1)*pic_w] = pic
     cv2.imshow(name, data) 
 
-def keep_top_activity(features, top=9): 
+def keep_feature_top_activity(features, top=9): 
     pic_numbers = features.shape[0]
     pic_h = features.shape[1]
     pic_w = features.shape[2]
@@ -75,6 +75,14 @@ def keep_top_activity(features, top=9):
             new_features[pic_number, h, w] = pic[h, w]
     return new_features    
 
+def keep_global_top_activity(features, top=9):
+    new_features = np.zeros(features.shape) 
+    c_max_indexes, h_max_indexes, w_max_indexes = np.unravel_index(features.ravel().argsort()[-top:], features.shape) 
+    for c, h, w in zip(c_max_indexes, h_max_indexes, w_max_indexes):
+        new_features[c, h, w] = features[c, h, w]
+    return new_features
+
+
 
 
 def ShowLayerFeatures(net, name):
@@ -84,10 +92,12 @@ def ShowLayerFeatures(net, name):
 
 def ShowLayerFeaturesInPixelSpace(net, name):
     conv1_feature_map = net.blobs[name].data[0]  #batch_size=1
-    net.blobs[name].diff[0] = keep_top_activity(conv1_feature_map)
+    net.blobs[name].diff[0] = keep_global_top_activity(conv1_feature_map, top=9)
+    #net.blobs[name].diff[0] = conv1_feature_map
     net.deconv(start=name)
-    data = net.blobs['data'].diff[0]
-    cv2.imshow(name + "_features_in_pic", data.transpose(1,2,0))
+    data = net.blobs['data'].diff[0] * 255
+    #cv2.imshow(name + "_features_in_pic", data.transpose(1,2,0))
+    show_features(data, name + "_feature", 3)
 
 
 if __name__ == "__main__":
@@ -100,8 +110,14 @@ if __name__ == "__main__":
         net.blobs['data'].data[...] = transformer.preprocess('data',caffe.io.load_image(image))
         # process the data through network
         out = net.forward()
+
+        #Show Image 
+        im = cv2.imread(image)
+        cv2.imshow("pic", im)
         ShowLayerFeaturesInPixelSpace(net, 'conv1')
         ShowLayerFeaturesInPixelSpace(net, 'conv2')
         ShowLayerFeaturesInPixelSpace(net, 'conv3')
+        ShowLayerFeaturesInPixelSpace(net, 'conv4')
+        ShowLayerFeaturesInPixelSpace(net, 'conv5')
         cv2.waitKey(0)
 
